@@ -9,7 +9,7 @@
 # 4. Never assume work is done or suggest finishing
 
 # Configuration
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 LAB_DRAFT_FILE="$PROJECT_ROOT/.lab-entry-draft.json"
 
 # Initialize with just date and empty blocks
@@ -52,6 +52,7 @@ function add_note() {
     fi
     
     # Add block with note and null commits per schema
+    # Use jq to append to existing blocks array
     jq --arg timestamp "$timestamp" --arg note "$note" '
       .blocks += [{
         "timestamp": $timestamp,
