@@ -13,6 +13,13 @@ function start_entry() {
     local current_date=$(date -u +"%Y-%m-%d")
     local current_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     
+    # Use placeholder title if none provided
+    if [ -z "$title" ] || [ "$title" = " " ]; then
+        title="Lab Entry: $current_date"
+        echo "📝 Starting with placeholder title: $title"
+        echo "💡 You can finalize the title when finishing the entry"
+    fi
+    
     # Check for existing draft with understanding
     if [ -f "$LAB_DRAFT_FILE" ]; then
         local existing_title=$(jq -r .title < "$LAB_DRAFT_FILE")
@@ -30,6 +37,7 @@ function start_entry() {
   \"started_at\": \"$current_time\",
   \"date\": \"$current_date\",
   \"title\": \"$title\",
+  \"is_placeholder_title\": $(if [ "$title" = "Lab Entry: $current_date" ]; then echo "true"; else echo "false"; fi),
   \"work_items\": [],
   \"commit_groups\": []
 }" > "$LAB_DRAFT_FILE"
@@ -142,9 +150,77 @@ function finish_entry() {
         return 1
     fi
     
-    # Generate markdown with proper Notion formatting
-    local title=$(jq -r .title < "$LAB_DRAFT_FILE")
+    # Check if title is placeholder and suggest alternatives
+    local is_placeholder=$(jq -r .is_placeholder_title < "$LAB_DRAFT_FILE")
+    local current_title=$(jq -r .title < "$LAB_DRAFT_FILE")
     local output_file="lab_entry_$(date +%Y%m%d).md"
+    
+    if [ "$is_placeholder" = "true" ]; then
+        echo "🎯 Finalizing your lab entry..."
+        echo ""
+        
+        # Generate title suggestions based on work content
+        local work_items=$(jq -r '.work_items[].content' "$LAB_DRAFT_FILE")
+        local commit_summaries=$(jq -r '.commit_groups[].summary' "$LAB_DRAFT_FILE")
+        
+        echo "Current placeholder title: $current_title"
+        echo ""
+        
+        # Extract key phrases for suggestions
+        local suggestion1=""
+        local suggestion2=""
+        local suggestion3=""
+        
+        if [ -n "$work_items" ] && [ "$work_items" != "null" ]; then
+            # Extract first few words from first work item
+            local first_words=$(echo "$work_items" | head -1 | sed 's/ .*//')
+            suggestion1="$first_words: $(date +%Y-%m-%d)"
+            
+            # Try to extract more meaningful phrase
+            local meaningful_phrase=$(echo "$work_items" | head -1 | sed 's/^\w\+ \w\+.*//')
+            if [ -n "$meaningful_phrase" ]; then
+                suggestion2="$meaningful_phrase"
+            fi
+        fi
+        
+        if [ -n "$commit_summaries" ] && [ "$commit_summaries" != "null" ]; then
+            suggestion3=$(echo "$commit_summaries" | head -1)
+        fi
+        
+        echo "Title suggestions based on your work:"
+        echo "1. Keep current: $current_title"
+        if [ -n "$suggestion1" ]; then echo "2. $suggestion1"; fi
+        if [ -n "$suggestion2" ]; then echo "3. $suggestion2"; fi
+        if [ -n "$suggestion3" ]; then echo "4. $suggestion3"; fi
+        echo "5. Enter custom title"
+        echo ""
+        
+        read -p "Choose title (1-5, or press enter for current): " title_choice
+        
+        if [ -n "$title_choice" ]; then
+            case "$title_choice" in
+                "2") title="$suggestion1";;
+                "3") title="$suggestion2";;
+                "4") title="$suggestion3";;
+                "5") 
+                    read -p "Enter custom title: " custom_title
+                    if [ -n "$custom_title" ]; then
+                        title="$custom_title"
+                    else
+                        title="$current_title"
+                    fi
+                    ;;
+                *) title="$current_title";;
+            esac
+        else
+            title="$current_title"
+        fi
+        
+        # Update the title in the draft
+        jq --arg title "$title" '.title = $title | .is_placeholder_title = false' "$LAB_DRAFT_FILE" > "$LAB_DRAFT_FILE.tmp" && mv "$LAB_DRAFT_FILE.tmp" "$LAB_DRAFT_FILE"
+    else
+        title="$current_title"
+    fi
     
     echo "# Lab Entry: $title" > "$output_file"
     echo "" >> "$output_file"
