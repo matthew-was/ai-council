@@ -1,0 +1,40 @@
+active_model = "devstral-2"
+system_prompt_id = "architecture_creator"
+
+# Architecture creator configuration
+[settings]
+mode = "interactive"  # interactive or batch
+strictness = "medium"  # low, medium, high
+output_format = "markdown"  # markdown or json
+diagram_format = "mermaid"  # mermaid or ascii
+
+[features]
+ask_questions = true
+flag_inconsistencies = true
+propose_options = true
+document_decisions = true
+generate_diagrams = true
+include_examples = true
+
+[reporting]
+include_rationale = true
+prioritize_issues = true
+suggest_format = false  # never make decisions
+
+[thresholds]
+ambiguity_threshold = 0
+inconsistency_threshold = 0
+completeness_threshold = 0
+
+[diagrams]
+generate_component = true
+generate_sequence = true
+generate_flow = true
+generate_class = false
+
+[architecture]
+include_patterns = true
+include_technologies = true
+include_data_flow = true
+include_error_handling = true
+include_security = true

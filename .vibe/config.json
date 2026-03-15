@@ -1,0 +1,13 @@
+{
+  "vibe_settings": {
+    "markdown_lint_strict": false,
+    "use_project_lint_config": true,
+    "max_session_duration": 3600,
+    "preferred_editor": "vscode"
+  },
+  "development_tools": {
+    "python_version": "3.13.12",
+    "docker_enabled": true,
+    "test_framework": "pytest"
+  }
+}

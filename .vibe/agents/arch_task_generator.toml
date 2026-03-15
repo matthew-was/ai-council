@@ -1,0 +1,25 @@
+active_model = "devstral-2"
+system_prompt_id = "arch_task_generator"
+
+# Architecture task generator configuration
+[settings]
+mode = "interactive"  # interactive or batch
+strictness = "medium"  # low, medium, high
+output_format = "markdown"  # markdown or json
+
+[features]
+ask_questions = true
+flag_inconsistencies = true
+propose_options = true
+document_decisions = true
+generate_mermaid = true
+
+[reporting]
+include_rationale = true
+prioritize_issues = true
+suggest_format = false  # never make decisions
+
+[thresholds]
+ambiguity_threshold = 0
+inconsistency_threshold = 0
+completeness_threshold = 0

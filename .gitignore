@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+
+# IDE
+.vscode/
+.idea/
+
+# Mac
+.DS_Store
+
+# Docker
+docker-compose.override.yml
+
+# Database
+*.sqlite
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Python cache
+*.pyc
+*.pyo
+*.pyd
+
+# Installation files
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Vibe specific
+.vibe/session_log.md
