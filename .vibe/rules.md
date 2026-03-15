@@ -37,6 +37,8 @@ docs/
 - Reference issue numbers when applicable
 - Keep commits atomic and focused
 - Include relevant documentation updates
+- **NEVER auto-commit** - Always ask user before committing changes
+- **NEVER assume commit grouping** - Let user decide when/what to commit
 
 ### 3. Project Structure
 
