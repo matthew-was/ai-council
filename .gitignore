@@ -18,6 +18,9 @@ venv/
 docker-compose.override.yml
 
 # Database
+
+# Lab entries - local draft files
+.lab-entry-draft.json
 *.sqlite
 
 # Logs
