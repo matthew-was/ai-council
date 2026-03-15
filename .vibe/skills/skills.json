@@ -2,22 +2,22 @@
   "skills": {
     "doc_skill": {
       "description": "Documentation quality enforcement",
-      "scripts": ["check_docs.sh", "generate_template.sh", "lint_docs.sh"],
+      "scripts": ["scripts/lint_docs.sh", "scripts/check_docs.sh", "scripts/generate_template.sh"],
       "trigger": "pre-commit"
     },
     "code_skill": {
       "description": "Python code quality checks",
-      "scripts": ["lint_code.sh", "format_code.sh", "type_check.sh"],
+      "scripts": ["scripts/lint_code.sh", "scripts/format_code.sh", "scripts/type_check.sh"],
       "trigger": "pre-commit"
     },
     "test_skill": {
       "description": "Testing and coverage",
-      "scripts": ["run_tests.sh", "check_coverage.sh"],
+      "scripts": ["scripts/run_tests.sh", "scripts/check_coverage.sh"],
       "trigger": "pre-push"
     },
     "arch_skill": {
       "description": "Architecture validation",
-      "scripts": ["generate_diagram.sh", "validate_architecture.sh"],
+      "scripts": ["scripts/generate_diagram.sh", "scripts/validate_architecture.sh"],
       "trigger": "manual"
     }
   }
