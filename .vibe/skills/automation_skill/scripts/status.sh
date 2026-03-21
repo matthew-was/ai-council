@@ -50,10 +50,12 @@ echo ""
 # Roadmap progress
 echo "🗺️ Roadmap Progress:"
 echo "--------------------"
-if [ -f "../roadmap.md" ]; then
+if [ -f ".vibe/roadmap.md" ]; then
     # Count completed tasks
-    completed=$(grep -c "- \[x\]" ../roadmap.md)
-    total=$(grep -c "- \[\(x\| \]\)" ../roadmap.md)
+    completed=$(grep "\-[ ]*\[x\]" .vibe/roadmap.md | wc -l)
+    total=$(grep "\-[ ]*\[x\]" .vibe/roadmap.md | wc -l)
+    incomplete=$(grep "\-[ ]*\[ \]" .vibe/roadmap.md | wc -l)
+    total=$((total + incomplete))
     if [ $total -gt 0 ]; then
         percent=$((completed * 100 / total))
         echo "  Progress: $completed/$total tasks ($percent%)"
@@ -68,19 +70,54 @@ echo ""
 # Session log
 echo "📝 Recent Sessions:"
 echo "------------------"
-if [ -f "../session_log.md" ]; then
-    grep "^## 📅" ../session_log.md | tail -3
+if [ -f ".vibe/session_log.md" ]; then
+    grep "^## 📅" .vibe/session_log.md | tail -3
 else
     echo "  No session log found"
+fi
+
+echo ""
+echo "📋 Lab Entry Log:"
+echo "----------------"
+# Check for active draft
+if [ -f ".vibe/.lab-entry-draft.json" ]; then
+    # Extract date and block count
+    entry_date=$(jq -r .date .vibe/.lab-entry-draft.json)
+    block_count=$(jq '.blocks | length' .vibe/.lab-entry-draft.json)
+
+    # Format date nicely
+    pretty_date=$(date -j -f "%Y-%m-%d" "$entry_date" "+%A, %B %d, %Y" 2>/dev/null || echo "$entry_date")
+
+    echo "  ✅ Lab entry started: $pretty_date"
+
+    if [ $block_count -gt 0 ]; then
+        echo "  📄 $block_count work block(s) recorded"
+        # Show one-line summary of each block with timestamp
+        for i in $(seq 0 $((block_count-1))); do
+            timestamp=$(jq -r ".blocks[$i].timestamp" .vibe/.lab-entry-draft.json)
+            pretty_time=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$timestamp" "+%H:%M" 2>/dev/null || echo "$timestamp")
+            note=$(jq -r ".blocks[$i].note" .vibe/.lab-entry-draft.json)
+            commit_count=$(jq ".blocks[$i].commits | length" .vibe/.lab-entry-draft.json)
+            if [ -n "$note" ]; then
+                echo "    - [$pretty_time] $note"
+            else
+                echo "    - [$pretty_time] $commit_count commit(s)"
+            fi
+        done
+    else
+        echo "  📄 No work blocks yet (add some!)"
+    fi
+else
+    echo "  📄 No active lab entry draft"
 fi
 echo ""
 
 echo "🎯 Next Steps:"
 echo "-------------"
-if [ -f "../roadmap.md" ]; then
-    grep -A 5 "Next Update" ../roadmap.md | tail -5 | sed 's/^/  /'
+if [ -f ".vibe/roadmap.md" ]; then
+    grep -A 5 "Next Update" .vibe/roadmap.md | tail -5 | sed 's/^/  /'
 else
-    echo "  Check ../roadmap.md for priorities"
+    echo "  Check .vibe/roadmap.md for priorities"
 fi
 echo ""
 
@@ -88,7 +125,7 @@ echo "💡 Tips:"
 echo "--------"
 echo "  • Run .vibe/start_session.sh to begin work"
 echo "  • Update .vibe/session_log.md after each session"
-echo "  • Follow workflow in ../rules.md"
+echo "  • Follow workflow in .vibe/rules.md"
 echo "  • Keep documentation updated"
 echo ""
 

@@ -21,6 +21,9 @@
 - [ ] FastAPI backend setup
 - [ ] Docker configuration
 - [ ] Basic agent framework
+- [ ] GitHub Actions setup (basic CI/CD pipeline)
+- [ ] Automated testing workflow
+- [ ] Documentation quality checks
 
 #### Phase 2: Agent System (Week 3-4)
 - [ ] Vision Keeper agent

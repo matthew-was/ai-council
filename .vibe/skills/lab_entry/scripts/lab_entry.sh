@@ -14,8 +14,8 @@ LAB_DRAFT_FILE="$PROJECT_ROOT/.lab-entry-draft.json"
 
 # Initialize with just date and empty blocks
 function start_entry() {
-    local current_date=$(date -u +"%Y-%m-%d")
-    
+    local current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
     # Check for existing draft
     if [ -f "$LAB_DRAFT_FILE" ]; then
         local existing_date=$(jq -r .date < "$LAB_DRAFT_FILE")
@@ -25,13 +25,13 @@ function start_entry() {
             return 1
         fi
     fi
-    
+
     # Create minimal structure per user's schema
     echo "{
   \"date\": \"$current_date\",
   \"blocks\": []
 }" > "$LAB_DRAFT_FILE"
-    
+
     echo "✅ Lab entry started: $current_date"
     echo "📝 Schema: date + empty blocks array"
 }
@@ -40,17 +40,17 @@ function start_entry() {
 function add_note() {
     local note="$1"
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    
+
     if [ ! -f "$LAB_DRAFT_FILE" ]; then
         echo "❌ No active lab entry. Start one first."
         return 1
     fi
-    
+
     if [ -z "$note" ]; then
         echo "⚠️  Note cannot be empty"
         return 1
     fi
-    
+
     # Add block with note and null commits per schema
     # Use jq to append to existing blocks array
     jq --arg timestamp "$timestamp" --arg note "$note" '
@@ -59,7 +59,7 @@ function add_note() {
         "note": $note,
         "commits": null
       }]' "$LAB_DRAFT_FILE" > "$LAB_DRAFT_FILE.tmp" && mv "$LAB_DRAFT_FILE.tmp" "$LAB_DRAFT_FILE"
-    
+
     echo "✅ Added note block at $timestamp"
 }
 
@@ -68,17 +68,17 @@ function add_commits() {
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     shift
     local commits=("$@")
-    
+
     if [ ! -f "$LAB_DRAFT_FILE" ]; then
         echo "❌ No active lab entry. Start one first."
         return 1
     fi
-    
+
     if [ ${#commits[@]} -eq 0 ]; then
         echo "⚠️  No commits provided"
         return 1
     fi
-    
+
     # Process commits
     local commit_data=()
     for sha in "${commits[@]}"; do
@@ -87,27 +87,27 @@ function add_commits() {
             echo "⚠️  Invalid commit: $sha"
             continue
         fi
-        
+
         local short_hash=$(git rev-parse --short "$sha")
         local message=$(git show -s --format=%s "$sha")
         local url=""
-        
+
         # Get GitHub URL if available
         local remote_url=$(git remote get-url origin 2>/dev/null)
         if [[ $remote_url == *"github.com"* ]]; then
             local repo_path=$(echo "$remote_url" | sed 's/.*github.com[:/]//' | sed 's/.git$//')
             url="https://github.com/$repo_path/commit/$full_hash"
         fi
-        
+
         commit_data+=("$(jq -n --arg sha "$short_hash" --arg message "$message" --arg url "$url" \
             '{sha: $sha, message: $message, url: $url}')")
     done
-    
+
     if [ ${#commit_data[@]} -eq 0 ]; then
         echo "❌ No valid commits found"
         return 1
     fi
-    
+
     # Add block with commits and null note per schema
     local commits_json=$(printf '%s\n' "${commit_data[@]}" | jq -s)
     jq --arg timestamp "$timestamp" --argjson commits "$commits_json" '
@@ -116,7 +116,7 @@ function add_commits() {
         "note": null,
         "commits": $commits
       }]' "$LAB_DRAFT_FILE" > "$LAB_DRAFT_FILE.tmp" && mv "$LAB_DRAFT_FILE.tmp" "$LAB_DRAFT_FILE"
-    
+
     echo "✅ Added commits block at $timestamp"
 }
 
@@ -126,17 +126,17 @@ function add_combined() {
     shift
     local commits=("$@")
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    
+
     if [ ! -f "$LAB_DRAFT_FILE" ]; then
         echo "❌ No active lab entry. Start one first."
         return 1
     fi
-    
+
     if [ -z "$note" ] && [ ${#commits[@]} -eq 0 ]; then
         echo "⚠️  Provide note, commits, or both"
         return 1
     fi
-    
+
     # Process commits if provided
     local commit_data=()
     for sha in "${commits[@]}"; do
@@ -145,26 +145,26 @@ function add_combined() {
             echo "⚠️  Invalid commit: $sha"
             continue
         fi
-        
+
         local short_hash=$(git rev-parse --short "$sha")
         local message=$(git show -s --format=%s "$sha")
         local url=""
-        
+
         local remote_url=$(git remote get-url origin 2>/dev/null)
         if [[ $remote_url == *"github.com"* ]]; then
             local repo_path=$(echo "$remote_url" | sed 's/.*github.com[:/]//' | sed 's/.git$//')
             url="https://github.com/$repo_path/commit/$full_hash"
         fi
-        
+
         commit_data+=("$(jq -n --arg sha "$short_hash" --arg message "$message" --arg url "$url" \
             '{sha: $sha, message: $message, url: $url}')")
     done
-    
+
     local commits_json="null"
     if [ ${#commit_data[@]} -gt 0 ]; then
         commits_json=$(printf '%s\n' "${commit_data[@]}" | jq -s)
     fi
-    
+
     # Add combined block per schema
     if [ -n "$note" ]; then
         jq --arg timestamp "$timestamp" --arg note "$note" --argjson commits "$commits_json" '
@@ -181,7 +181,7 @@ function add_combined() {
             "commits": $commits
           }]' "$LAB_DRAFT_FILE" > "$LAB_DRAFT_FILE.tmp" && mv "$LAB_DRAFT_FILE.tmp" "$LAB_DRAFT_FILE"
     fi
-    
+
     echo "✅ Added combined block at $timestamp"
 }
 
@@ -191,19 +191,19 @@ function show_status() {
         echo "📊 No active lab entry"
         return 1
     fi
-    
+
     local date=$(jq -r .date < "$LAB_DRAFT_FILE")
     local block_count=$(jq '.blocks | length' "$LAB_DRAFT_FILE")
-    
+
     echo "📋 Lab Entry: $date"
     echo "📝 Blocks: $block_count"
     echo ""
-    
+
     for ((i=0; i<block_count; i++)); do
         local timestamp=$(jq -r ".blocks[$i].timestamp" "$LAB_DRAFT_FILE")
         local note=$(jq -r ".blocks[$i].note" "$LAB_DRAFT_FILE")
         local commits=$(jq -r ".blocks[$i].commits" "$LAB_DRAFT_FILE")
-        
+
         echo "Block $((i+1)) - $timestamp:"
         if [ "$note" != "null" ]; then
             echo "  📝 Note: $note"
@@ -222,20 +222,20 @@ function finish_entry() {
         echo "❌ No active lab entry"
         return 1
     fi
-    
+
     # Output JSON file
     local json_file="lab_entry_$(date +%Y%m%d).json"
     cp "$LAB_DRAFT_FILE" "$json_file"
-    
+
     # Generate Notion markdown with proper GitHub links
     local md_file="lab_entry_$(date +%Y%m%d).md"
     local date=$(jq -r .date < "$LAB_DRAFT_FILE")
-    
+
     echo "# Lab Entry: $date" > "$md_file"
     echo "" >> "$md_file"
     echo "## What was done" >> "$md_file"
     echo "" >> "$md_file"
-    
+
     # Process each block
     local block_count=$(jq '.blocks | length' "$LAB_DRAFT_FILE")
     for ((i=0; i<block_count; i++)); do
@@ -243,20 +243,20 @@ function finish_entry() {
         local note=$(jq -r ".blocks[$i].note" "$LAB_DRAFT_FILE")
         local commits=$(jq -r ".blocks[$i].commits" "$LAB_DRAFT_FILE")
         local time_only=$(echo "$timestamp" | cut -c 12-16)
-        
+
         echo "### ${time_only} UTC" >> "$md_file"
-        
+
         if [ "$note" != "null" ]; then
             echo "$note" >> "$md_file"
         fi
-        
+
         if [ "$commits" != "null" ]; then
             local commit_count=$(echo "$commits" | jq 'length')
             for ((j=0; j<commit_count; j++)); do
                 local sha=$(echo "$commits" | jq -r ".[$j].sha")
                 local message=$(echo "$commits" | jq -r ".[$j].message")
                 local url=$(echo "$commits" | jq -r ".[$j].url")
-                
+
                 if [ "$url" != "null" ] && [ -n "$url" ]; then
                     echo "- [$sha]($url) — $message" >> "$md_file"
                 else
@@ -264,18 +264,18 @@ function finish_entry() {
                 fi
             done
         fi
-        
+
         echo "" >> "$md_file"
     done
-    
+
     echo "## Next steps" >> "$md_file"
     echo "- Review and refine the implementation" >> "$md_file"
     echo "- Test with sample data" >> "$md_file"
     echo "- Document the workflow" >> "$md_file"
-    
+
     # Clean up
     rm "$LAB_DRAFT_FILE"
-    
+
     echo "🎉 Lab entry completed!"
     echo "📄 JSON file: $json_file"
     echo "📝 Notion markdown: $md_file"
@@ -290,10 +290,10 @@ function discard_draft() {
         echo "📊 No active lab entry"
         return 1
     fi
-    
+
     local date=$(jq -r .date < "$LAB_DRAFT_FILE")
     read -p "🗑️  Discard entry from $date? (y/n): " confirm
-    
+
     if [ "$confirm" = "y" ]; then
         rm "$LAB_DRAFT_FILE"
         echo "🗑️  Entry discarded"
@@ -319,12 +319,12 @@ case "$1" in
         note=""
         commits=()
         found_hash=false
-        
+
         for arg in "$@"; do
             if [[ $arg =~ ^[a-f0-9]{7,40}$ ]] && ! $found_hash; then
                 found_hash=true
             fi
-            
+
             if $found_hash; then
                 commits+=("$arg")
             else
@@ -334,7 +334,7 @@ case "$1" in
                 note="$note$arg"
             fi
         done
-        
+
         add_combined "$note" "${commits[@]}"
         ;;
     "status")
