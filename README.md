@@ -1,140 +1,145 @@
-# AI Council - Multi-Agent System
+# AI Council
+
+## 🎯 Project Overview
+
+AI Council is a self-hosted system for institutional knowledge with specialized personas. It enables users to simulate conversations with diverse perspectives to validate ideas before real meetings.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Docker and Docker Compose installed
-- Python 3.13+ (for local development)
 
-### 1. Clone the repository
+- Docker and Docker Compose
+- Python 3.9+
+- PostgreSQL
+- Ollama with Mistral 7B model
+
+### Installation
 
 ```bash
-git clone https://github.com/yourusername/ai-council.git
+# Clone the repository
+git clone https://github.com/your-repo/ai-council.git
 cd ai-council
+
+# Set up environment
+docker-compose up -d
+
+# Install Python dependencies
+pip install -r requirements.txt
 ```
 
-### 2. Install development tools
-
-```bash
-pip install pylint black isort pytest pytest-cov
-```
-
-### 3. Start the services
-
-```bash
-docker-compose up --build
-```
-
-### 4. Access the applications
-- **Frontend**: <http://localhost:8501>
-- **Backend API**: <http://localhost:8000>
-- **Backend Docs**: <http://localhost:8000/docs>
-- **Database Admin**: <http://localhost:5050> (email: <admin@ai-council.com>, password: admin123)
-
-## 📂 Project Structure
+## 📁 Project Structure
 
 ```text
-ai-council/
-├── backend/              # FastAPI backend service
-│   ├── src/
-│   │   ├── main.py       # Backend entry point
-│   │   └── agents/       # AI agents (future implementation)
-│   │       └── agent_template.md
-│   ├── requirements.txt  # Backend dependencies
-│   └── Dockerfile         # Backend build config
-├── frontend/             # Streamlit UI service
-│   ├── src/main.py        # Frontend entry point
-│   ├── requirements.txt  # Frontend dependencies
-│   └── Dockerfile         # Frontend build config
-├── docker-compose.yml    # Service orchestration (4 services)
-├── .vibe/                # Vibe development tools
-│   └── skills/           # Development assistance skills
-│       ├── arch_skill/   # Architecture validation
-│       ├── code_skill/   # Code quality checks
-│       ├── doc_skill/    # Documentation tools
-│       ├── test_skill/   # Testing framework
-│       ├── run.sh        # Master skill runner
-│       └── skills.json   # Skill configuration
-├── .gitignore            # Git ignore rules
-├── .markdownlint.json    # Markdown linting config
-├── docs/                 # Project documentation
-│   └── requirements.md   # System requirements
-├── overview.md           # Project overview
-└── README.md              # This file
+.
+├── backend/                    # FastAPI backend
+├── frontend/                   # Streamlit UI
+├── docs/                       # Documentation
+├── tests/                      # Test suite
+├── .vibe/                      # Development automation tools
+├── docker-compose.yml          # Container configuration
+└── README.md                   # This file
 ```
 
-## 🧪 Development Workflow
+## 🎯 Core Features
 
-### Run quality checks
+### Persona-Based Guidance
+- Simulate conversations with specialized roles (Vision Keeper, Technical Mentor, Business Strategist, etc.)
+- Test assumptions with diverse perspectives
+- Identify risks and opportunities early
+
+### Threaded Conversations
+- Organize discussions into folders
+- Manage multiple conversation threads
+- Context-aware interactions
+
+### Context Optimization
+- Automatic summarization when context exceeds token limits
+- User-requested targeted summarization
+- Chunking of older messages
+- Copy summaries as Markdown for reuse
+
+### Continuous Improvement
+- Post-session reviews by Review Agent
+- Agent performance optimization
+- Instruction refinement based on conversation analysis
+
+## 📊 System Architecture
+
+### Core Components
+- **AI Model**: Mistral 7B (Ollama) - Backend LLM for persona interactions
+- **Backend**: FastAPI + LangGraph - Orchestrate services and manage context
+- **Database**: PostgreSQL - Store conversations, folders, summaries, and reports
+- **UI**: Streamlit - User interface for persona interactions
+- **Reports**: Markdown files - Saved persona-generated reports
+
+### Key Workflows
+1. **Conversation Management**: Create, organize, and end conversations
+2. **Agent Orchestration**: Dynamic agent involvement based on conversation context
+3. **Context Handling**: Automatic summarization and chunking
+4. **Review Process**: Post-session analysis and agent optimization
+
+## 🧪 Testing
 
 ```bash
-# Run all skills
-.vibe/skills/run.sh all
+# Run backend tests
+cd backend
+pytest tests/
 
-# Run specific checks
-.vibe/skills/doc_skill/lint_docs.sh
-.vibe/skills/code_skill/lint_code.sh
+# Run frontend tests  
+cd frontend
+pytest tests/
 ```
 
-### Work with services
+## 📖 Usage
+
+### Starting a Conversation
+1. Navigate to Conversations/Folders page
+2. Click "New Conversation"
+3. Enter your query
+4. Select personas to involve
+
+### Managing Agents
+1. Go to Personas/Agents page
+2. Create new agents with roles and instructions
+3. Add agents to conversations as needed
+
+### Ending a Conversation
+1. Click "End conversation"
+2. Review auto-generated summary
+3. Optionally create detailed report
+
+## 🔧 Development
+
+### Backend Development
 
 ```bash
-# Start specific service
-cd backend && uvicorn src.main:app --reload
-cd frontend && streamlit run src/main.py
-
-# Rebuild containers
-docker-compose build
-
-# View logs
-docker-compose logs -f
+cd backend
+uvicorn main:app --reload
 ```
 
-## 🔧 Configuration
+### Frontend Development
 
-### Environment Variables
+```bash
+cd frontend
+streamlit run app.py
+```
 
-**Backend** (in docker-compose.yml or .env):
-- `DATABASE_URL`: PostgreSQL connection string
-- `ENVIRONMENT`: development/production
+## 📚 Documentation
 
-**Frontend** (in docker-compose.yml or .env):
-- `BACKEND_URL`: Backend API endpoint
-- `ENVIRONMENT`: development/production
+- [System Overview](overview.md) - Detailed system design and architecture
+- [User Journeys](overview.md#user-journeys) - Complete user workflows
+- [Agent Roles](overview.md#agentpersona-management) - Persona definitions and purposes
 
-### Database
-- **PostgreSQL**: Accessible on port 5432
-- **pgAdmin**: <http://localhost:5050> (<admin@ai-council.com>/admin123)
+## 🎯 Project Status
 
-## 📊 Services
+- ✅ Core conversation system implemented
+- ✅ Basic persona management complete
+- ✅ Context optimization framework in place
+- ⏳ Advanced agent orchestration in development
+- ⏳ Review agent system being implemented
 
-| Service | Port | URL |
-| ------- | ---- | --- |
-| Frontend | 8501 | <http://localhost:8501> |
-| Backend | 8000 | <http://localhost:8000> |
-| Backend Docs | 8000 | <http://localhost:8000/docs> |
-| PostgreSQL | 5432 | postgres://user:password@localhost:5432/ai_council |
-| pgAdmin | 5050 | <http://localhost:5050> |
+---
 
-## 🎯 Roadmap
+**AI Council** © 2026 | All rights reserved
 
-- [x] Basic backend API structure
-- [x] Basic frontend UI structure
-- [x] Docker Compose setup
-- [x] Development agents configuration
-- [ ] Database models and migrations
-- [ ] Agent implementation
-- [ ] Thread management
-- [ ] User authentication
-- [ ] Production deployment
-
-## 🤝 Contributing
-
-1. Run quality checks before committing
-2. Update documentation as you go
-3. Follow the existing code style
-4. Write tests for new features
-
-## 📄 License
-
-MIT License - See LICENSE file for details.
+*Self-hosted institutional knowledge system with specialized personas*

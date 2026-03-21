@@ -50,10 +50,10 @@ echo ""
 # Roadmap progress
 echo "🗺️ Roadmap Progress:"
 echo "--------------------"
-if [ -f ".vibe/roadmap.md" ]; then
+if [ -f "../roadmap.md" ]; then
     # Count completed tasks
-    completed=$(grep -c "- \[x\]" .vibe/roadmap.md)
-    total=$(grep -c "- \[\(x\| \]\)" .vibe/roadmap.md)
+    completed=$(grep -c "- \[x\]" ../roadmap.md)
+    total=$(grep -c "- \[\(x\| \]\)" ../roadmap.md)
     if [ $total -gt 0 ]; then
         percent=$((completed * 100 / total))
         echo "  Progress: $completed/$total tasks ($percent%)"
@@ -68,8 +68,8 @@ echo ""
 # Session log
 echo "📝 Recent Sessions:"
 echo "------------------"
-if [ -f ".vibe/session_log.md" ]; then
-    grep "^## 📅" .vibe/session_log.md | tail -3
+if [ -f "../session_log.md" ]; then
+    grep "^## 📅" ../session_log.md | tail -3
 else
     echo "  No session log found"
 fi
@@ -77,10 +77,10 @@ echo ""
 
 echo "🎯 Next Steps:"
 echo "-------------"
-if [ -f ".vibe/roadmap.md" ]; then
-    grep -A 5 "Next Update" .vibe/roadmap.md | tail -5 | sed 's/^/  /'
+if [ -f "../roadmap.md" ]; then
+    grep -A 5 "Next Update" ../roadmap.md | tail -5 | sed 's/^/  /'
 else
-    echo "  Check .vibe/roadmap.md for priorities"
+    echo "  Check ../roadmap.md for priorities"
 fi
 echo ""
 
@@ -88,7 +88,7 @@ echo "💡 Tips:"
 echo "--------"
 echo "  • Run .vibe/start_session.sh to begin work"
 echo "  • Update .vibe/session_log.md after each session"
-echo "  • Follow workflow in .vibe/rules.md"
+echo "  • Follow workflow in ../rules.md"
 echo "  • Keep documentation updated"
 echo ""
 

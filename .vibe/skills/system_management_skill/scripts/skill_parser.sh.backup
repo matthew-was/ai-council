@@ -1,0 +1,140 @@
+#!/bin/bash
+
+# SKILL.md Parser
+# Extracts metadata from SKILL.md files
+
+set -e
+
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to parse skill metadata
+parse_skill_metadata() {
+    local skill_dir="$1"
+    local skill_file="$skill_dir/SKILL.md"
+    
+    if [[ ! -f "$skill_file" ]]; then
+        echo "Error: SKILL.md not found in $skill_dir" >&2
+        return 1
+    fi
+    
+    # Check if file has YAML frontmatter
+    if head -1 "$skill_file" | grep -q "^---$"; then
+        # Use Python for YAML parsing if available
+        if command -v python3 &> /dev/null; then
+            python3 -c "
+import yaml
+import sys
+
+try:
+    with open('$skill_file', 'r') as f:
+        content = f.read()
+    
+    # Extract YAML frontmatter
+    if content.startswith('---'):
+        yaml_end = content.find('---', 3)
+        yaml_content = content[3:yaml_end].strip()
+        data = yaml.safe_load(yaml_content)
+        
+        print(f\"name={data.get('name', '')}\")
+        print(f\"description={data.get('description', '')}\")
+        if 'metadata' in data:
+            print(f\"version={data['metadata'].get('version', '')}\")
+            print(f\"author={data['metadata'].get('author', '')}\")
+            print(f\"license={data['metadata'].get('license', '')}\")
+        sys.exit(0)
+    else:
+        print(\"Error: No YAML frontmatter found\", file=sys.stderr)
+        sys.exit(1)
+except Exception as e:
+    print(f\"Error parsing YAML: {e}\", file=sys.stderr)
+    sys.exit(1)
+"
+        else
+            # Fallback: Simple parsing with grep/sed
+            echo "name=$(grep -m1 'name:' "$skill_file" | sed 's/.*name: //')"
+            echo "description=$(grep -m1 'description:' "$skill_file" | sed 's/.*description: //')"
+            echo "version=$(grep -A5 'metadata:' "$skill_file" | grep 'version:' | sed 's/.*version: //' | tr -d '"')"
+        fi
+    else
+        # Non-YAML format: Extract from markdown headers
+        echo "name=$(basename "$skill_dir")"
+        echo "description=$(head -2 "$skill_file" | tail -1 | sed 's/^# //')"
+        echo "version=1.0"  # Default version for non-YAML skills
+    fi
+}
+
+# Function to validate skill metadata
+validate_skill_metadata() {
+    local skill_dir="$1"
+    
+    # Parse metadata
+    local metadata
+    metadata=$(parse_skill_metadata "$skill_dir")
+    
+    # Validate required fields
+    if echo "$metadata" | grep -q "name="; then
+        echo "✅ Valid SKILL.md structure"
+        return 0
+    else
+        echo "❌ Invalid SKILL.md: Missing required fields"
+        return 1
+    fi
+}
+
+# Function to extract specific metadata fields
+extract_skill_metadata() {
+    local skill_dir="$1"
+    local field="$2"
+    
+    if [[ -z "$field" ]]; then
+        # Extract all fields if no specific field requested
+        parse_skill_metadata "$skill_dir"
+    else
+        # Extract specific field
+        local metadata
+        metadata=$(parse_skill_metadata "$skill_dir")
+        echo "$metadata" | grep "^$field=" | cut -d'=' -f2-
+    fi
+}
+
+# Main function
+main() {
+    local command="$1"
+    shift
+
+    case "$command" in
+        parse)
+            parse_skill_metadata "$@"
+            ;;
+        validate)
+            validate_skill_metadata "$@"
+            ;;
+        extract)
+            extract_skill_metadata "$@"
+            ;;
+        *)
+            echo "AI Council SKILL.md Parser"
+            echo "=========================="
+            echo ""
+            echo "Usage: $0 <command> [skill_dir] [field]"
+            echo ""
+            echo "Commands:"
+            echo "  parse <dir>      - Parse all metadata from SKILL.md"
+            echo "  validate <dir>   - Validate SKILL.md structure"
+            echo "  extract <dir> [field] - Extract specific metadata field"
+            echo ""
+            echo "Examples:"
+            echo "  $0 parse .vibe/skills/doc_skill"
+            echo "  $0 validate .vibe/skills/doc_skill"
+            echo "  $0 extract .vibe/skills/doc_skill version"
+            ;;
+    esac
+}
+
+# Run main function with all arguments
+main "$@"

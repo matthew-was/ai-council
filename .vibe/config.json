@@ -9,5 +9,14 @@
     "python_version": "3.13.12",
     "docker_enabled": true,
     "test_framework": "pytest"
+  },
+  "permission_settings": {
+    "default_skill_access": "write",
+    "admin_users": [
+      "matthew"
+    ],
+    "restricted_skills": [],
+    "skill_execution_rules": {},
+    "direct_access_skills": []
   }
 }

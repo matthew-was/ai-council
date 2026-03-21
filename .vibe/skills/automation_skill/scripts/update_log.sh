@@ -9,12 +9,12 @@ DATE=$(date +"%Y-%m-%d")
 TIME=$(date +"%H:%M")
 
 # Create new session entry
-cat << EOF >> .vibe/session_log.md
+cat << EOF >> ../session_log.md
 
 ## 📅 $DATE - Session
 
 ### 🕒 Start Time: $TIME
-### 🕒 End Time: 
+### 🕒 End Time:
 ### 👤 Participant: $(whoami)
 
 ### 🎯 Objectives
@@ -24,14 +24,14 @@ cat << EOF >> .vibe/session_log.md
 
 ### ✅ Accomplishments
 **Category:**
-- ✅ 
-- ✅ 
+- ✅
+- ✅
 
 ### 📊 Metrics
-- **Files Created/Modified:** 
-- **Lines of Code/Documentation:** 
-- **Tests Added:** 
-- **Issues Resolved:** 
+- **Files Created/Modified:**
+- **Lines of Code/Documentation:**
+- **Tests Added:**
+- **Issues Resolved:**
 
 ### 🔄 Decisions Made
 1. **Decision:**
@@ -44,8 +44,8 @@ cat << EOF >> .vibe/session_log.md
 - Lesson:
 
 ### 🎯 Next Session Goals
-1. 
-2. 
+1.
+2.
 3.
 
 ### 📝 Notes
@@ -54,8 +54,8 @@ cat << EOF >> .vibe/session_log.md
 -
 
 ### 🔄 Follow-up Actions
-- [ ] 
-- [ ] 
+- [ ]
+- [ ]
 - [ ]
 
 ---
@@ -68,9 +68,9 @@ echo ""
 
 # Open the log file for editing
 if command -v code &> /dev/null; then
-    code .vibe/session_log.md
+    code ../session_log.md
 elif command -v open &> /dev/null; then
-    open -a TextEdit .vibe/session_log.md
+    open -a TextEdit ../session_log.md
 else
-    echo "Session log ready for editing: .vibe/session_log.md"
+    echo "Session log ready for editing: ../session_log.md"
 fi

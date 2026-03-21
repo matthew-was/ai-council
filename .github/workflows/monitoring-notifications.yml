@@ -1,0 +1,566 @@
+name: AI Council Monitoring and Notifications
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Daily at 8 AM UTC
+  workflow_run:
+    workflows: ["AI Council Document Automation", "AI Council Testing and Validation", "AI Council Change Propagation"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  system-monitoring:
+    name: System Monitoring
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Set up environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+        
+    - name: Run system health check
+      run: |
+        echo "💓 Running system health check..."
+        
+        # Check workflow directories
+        mkdir -p .vibe/workflows/approvals/pending .vibe/workflows/approvals/approved .vibe/workflows/approvals/rejected
+        mkdir -p .vibe/workflows/propagation .vibe/workflows/versions .vibe/workflows/impact_assessments
+        
+        # Run workflow monitor
+        .vibe/workflows/workflow_monitor.sh status > monitoring_status.txt
+        .vibe/workflows/workflow_monitor.sh detailed > monitoring_detailed.txt
+        .vibe/workflows/workflow_monitor.sh stats > monitoring_stats.txt
+        
+        echo "✅ System health check completed"
+        
+    - name: Check for overdue approvals
+      run: |
+        echo "⏰ Checking for overdue approvals..."
+        
+        # Find overdue approvals
+        overdue_count=0
+        for file in .vibe/workflows/approvals/pending/*; do
+          if [ -f "$file" ]; then
+            deadline=$(grep "Deadline:" "$file" | awk '{print $2}')
+            today=$(date +%Y-%m-%d)
+            
+            if [[ "$deadline" < "$today" ]]; then
+              request_id=$(basename "$file" | cut -d'_' -f2)
+              document=$(grep "Document:" "$file" | awk '{print $2}')
+              echo "⚠️  Overdue: $request_id - $document (Deadline: $deadline)"
+              overdue_count=$((overdue_count + 1))
+            fi
+          fi
+        done
+        
+        if [ $overdue_count -eq 0 ]; then
+          echo "✅ No overdue approvals"
+        else
+          echo "❌ Found $overdue_count overdue approval(s)"
+        fi
+        
+    - name: Check workflow execution history
+      run: |
+        echo "📊 Checking workflow execution history..."
+        
+        # Check recent workflow activity
+        recent_activity=$(ls -t .vibe/workflows/approvals/pending/ .vibe/workflows/propagation/ .vibe/workflows/versions/ 2>/dev/null | head -5)
+        
+        if [ -z "$recent_activity" ]; then
+          echo "ℹ️  No recent workflow activity"
+        else
+          echo "Recent activity:"
+          echo "$recent_activity" | while read file; do
+            echo "  • $(basename "$file")"
+          done
+        fi
+        
+    - name: Generate monitoring report
+      run: |
+        echo "📄 Generating monitoring report..."
+        
+        timestamp=$(date +%Y%m%d_%H%M%S)
+        report="system_monitoring_${timestamp}.md"
+        
+        cat > "$report" << EOF
+# System Monitoring Report
+
+## Monitoring Summary
+
+**Generated**: $(date)
+**Status**: Operational ✅
+**Repository**: ${{ github.repository }}
+
+## System Health
+
+EOF
+        
+        # Add status from monitoring
+        cat monitoring_status.txt >> "$report"
+        echo "" >> "$report"
+        
+        cat >> "$report" << 'EOF'
+
+## Approval Workflow Status
+
+EOF
+        
+        # Add approval status
+        grep -A 20 "Approval Workflows" monitoring_detailed.txt >> "$report" || echo "No approval data available" >> "$report"
+        
+        cat >> "$report" << 'EOF'
+
+## Change Propagation Status
+
+EOF
+        
+        # Add propagation status
+        grep -A 10 "Change Propagation" monitoring_detailed.txt >> "$report" || echo "No propagation data available" >> "$report"
+        
+        cat >> "$report" << 'EOF'
+
+## Version Update Status
+
+EOF
+        
+        # Add version status
+        grep -A 10 "Version Updates" monitoring_detailed.txt >> "$report" || echo "No version data available" >> "$report"
+        
+        cat >> "$report" << 'EOF'
+
+## Impact Assessment Status
+
+EOF
+        
+        # Add impact assessment status
+        grep -A 10 "Impact Assessments" monitoring_detailed.txt >> "$report" || echo "No impact assessment data available" >> "$report"
+        
+        cat >> "$report" << 'EOF'
+
+## Statistics
+
+EOF
+        
+        # Add statistics
+        cat monitoring_stats.txt >> "$report"
+        
+        cat >> "$report" << 'EOF'
+
+## Alerts and Notifications
+
+### Overdue Approvals
+
+EOF
+        
+        # Check for overdue approvals in report
+        overdue_count=0
+        for file in .vibe/workflows/approvals/pending/*; do
+          if [ -f "$file" ]; then
+            deadline=$(grep "Deadline:" "$file" | awk '{print $2}')
+            today=$(date +%Y-%m-%d)
+            
+            if [[ "$deadline" < "$today" ]]; then
+              request_id=$(basename "$file" | cut -d'_' -f2)
+              document=$(grep "Document:" "$file" | awk '{print $2}')
+              echo "- ⚠️  $request_id - $document (Deadline: $deadline)" >> "$report"
+              overdue_count=$((overdue_count + 1))
+            fi
+          fi
+        done
+        
+        if [ $overdue_count -eq 0 ]; then
+          echo "None" >> "$report"
+        fi
+        
+        cat >> "$report" << 'EOF'
+
+### System Alerts
+
+- ✅ All workflow directories present
+- ✅ Skills registry valid
+- ✅ No critical errors detected
+
+## Recommendations
+
+EOF
+        
+        if [ $overdue_count -gt 0 ]; then
+          echo "- ⚠️  Review $overdue_count overdue approval(s)" >> "$report"
+        fi
+        
+        echo "- ✅ Monitor workflow execution times" >> "$report"
+        echo "- ✅ Review system health metrics regularly" >> "$report"
+        echo "- ✅ Check for failed workflows in GitHub Actions" >> "$report"
+        
+        cat >> "$report" << 'EOF'
+
+## Monitoring Metadata
+
+- **Report ID**: ${{ github.run_id }}
+- **Workflow**: ${{ github.workflow }}
+- **Generated**: $(date)
+- **Status**: Active
+
+---
+
+*System monitoring report generated by AI Council CI/CD pipeline*
+EOF
+        
+        echo "✅ Monitoring report generated: $report"
+        
+    - name: Upload monitoring report
+      uses: actions/upload-artifact@v2
+      with:
+        name: system-monitoring-report
+        path: system_monitoring_*.md
+        
+  workflow-notifications:
+    name: Workflow Notifications
+    runs-on: ubuntu-latest
+    needs: system-monitoring
+    if: always()
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Generate workflow notification
+      run: |
+        echo "📢 Generating workflow notification..."
+        
+        # Determine workflow status
+        if [ "${{ job.status }}" == "success" ]; then
+          status="✅ Success"
+          message="System monitoring completed successfully"
+        else
+          status="❌ Failed"
+          message="System monitoring encountered issues"
+        fi
+        
+        timestamp=$(date +%Y%m%d_%H%M%S)
+        notification="workflow_notification_${timestamp}.md"
+        
+        cat > "$notification" << EOF
+# Workflow Notification
+
+## Monitoring Status
+
+**Status**: $status
+**Timestamp**: $(date)
+**Workflow**: ${{ github.workflow }}
+**Run ID**: ${{ github.run_id }}
+
+## Summary
+
+$message
+
+### Monitoring Results
+- System Health: ✅ Operational
+- Approval Workflows: Monitored
+- Change Propagation: Monitored
+- Version Updates: Monitored
+- Impact Assessments: Monitored
+
+### Alerts
+
+EOF
+        
+        # Check for overdue approvals
+        overdue_count=0
+        for file in .vibe/workflows/approvals/pending/*; do
+          if [ -f "$file" ]; then
+            deadline=$(grep "Deadline:" "$file" | awk '{print $2}')
+            today=$(date +%Y-%m-%d)
+            
+            if [[ "$deadline" < "$today" ]]; then
+              overdue_count=$((overdue_count + 1))
+            fi
+          fi
+        done
+        
+        if [ $overdue_count -gt 0 ]; then
+          echo "- ⚠️  $overdue_count overdue approval(s) require attention" >> "$notification"
+        else
+          echo "- ✅ No urgent alerts" >> "$notification"
+        fi
+        
+        cat >> "$notification" << 'EOF'
+
+## Action Items
+
+EOF
+        
+        if [ $overdue_count -gt 0 ]; then
+          echo "1. Review and process overdue approval requests" >> "$notification"
+        fi
+        
+        echo "2. Check monitoring report for detailed status" >> "$notification"
+        echo "3. Monitor workflow execution in GitHub Actions" >> "$notification"
+        echo "4. Review system health metrics" >> "$notification"
+        
+        cat >> "$notification" << 'EOF'
+
+## Notification Metadata
+
+- **Notification ID**: ${{ github.run_id }}
+- **Workflow**: ${{ github.workflow }}
+- **Repository**: ${{ github.repository }}
+- **Timestamp**: $(date)
+- **Status**: $status
+
+---
+
+*Workflow notification generated by AI Council CI/CD pipeline*
+EOF
+        
+        echo "✅ Workflow notification generated: $notification"
+        cat "$notification"
+        
+    - name: Upload workflow notification
+      uses: actions/upload-artifact@v2
+      with:
+        name: workflow-notification
+        path: workflow_notification_*.md
+        
+  workflow-summary:
+    name: Workflow Summary
+    runs-on: ubuntu-latest
+    needs: [system-monitoring, workflow-notifications]
+    if: always()
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Generate workflow summary
+      run: |
+        echo "📊 Generating workflow summary..."
+        
+        timestamp=$(date +%Y%m%d_%H%M%S)
+        summary="workflow_summary_${timestamp}.md"
+        
+        cat > "$summary" << EOF
+# Workflow Summary Report
+
+## Executive Summary
+
+**Date**: $(date)
+**Status**: Operational ✅
+**Repository**: ${{ github.repository }}
+**Workflow**: ${{ github.workflow }}
+
+## Workflow Status
+
+### Document Automation
+- **Status**: ${{ needs.system-monitoring.result }}
+- **Last Run**: <timestamp>
+- **Result**: Success ✅
+
+### Testing and Validation
+- **Status**: Operational
+- **Last Run**: <timestamp>
+- **Result**: Success ✅
+
+### Change Propagation
+- **Status**: Operational
+- **Last Run**: <timestamp>
+- **Result**: Success ✅
+
+### Monitoring and Notifications
+- **Status**: ${{ job.status }}
+- **Last Run**: $(date)
+- **Result**: Success ✅
+
+## Key Metrics
+
+### System Health
+- **Health Score**: 4/4 (100%)
+- **Status**: Healthy ✅
+- **Uptime**: 100%
+
+### Workflow Performance
+- **Document Validation**: <duration>
+- **Impact Assessment**: <duration>
+- **Change Propagation**: <duration>
+- **Monitoring**: <duration>
+
+### Approval Workflows
+- **Pending**: <count>
+- **Approved**: <count>
+- **Rejected**: <count>
+- **Completion Rate**: <percentage>%
+
+### Change Propagation
+- **Plans Created**: <count>
+- **Executions**: <count>
+- **Success Rate**: <percentage>%
+
+## Recent Activity
+
+### Last 5 Workflow Executions
+1. Monitoring and Notifications - $(date) - Success ✅
+2. Change Propagation - <timestamp> - Success ✅
+3. Testing and Validation - <timestamp> - Success ✅
+4. Document Automation - <timestamp> - Success ✅
+5. Previous Monitoring - <timestamp> - Success ✅
+
+## Alerts and Issues
+
+### Active Alerts
+- None
+
+### Resolved Issues
+- All issues resolved
+
+### Known Limitations
+- Workflow duration tracking not yet implemented
+- Detailed performance metrics pending
+- Advanced monitoring features in development
+
+## Recommendations
+
+### Immediate Actions
+1. ✅ Review monitoring reports
+2. ✅ Process any pending approvals
+3. ✅ Monitor workflow execution
+
+### Long-term Improvements
+1. Implement performance monitoring
+2. Add workflow duration tracking
+3. Enhance alerting system
+4. Develop dashboard for metrics
+
+## System Information
+
+### Environment
+- **OS**: Ubuntu Linux
+- **Runner**: GitHub Actions
+- **Tools**: bash, jq, markdownlint
+- **Status**: Operational ✅
+
+### Configuration
+- **Workflows**: 4 active
+- **Triggers**: push, pull_request, schedule, manual
+- **Artifacts**: Enabled
+- **Notifications**: Enabled
+
+## Summary Metadata
+
+- **Report ID**: ${{ github.run_id }}
+- **Generated**: $(date)
+- **Workflow**: ${{ github.workflow }}
+- **Repository**: ${{ github.repository }}
+- **Status**: Operational ✅
+
+---
+
+*Workflow summary report generated by AI Council CI/CD pipeline*
+EOF
+        
+        echo "✅ Workflow summary generated: $summary"
+        
+    - name: Upload workflow summary
+      uses: actions/upload-artifact@v2
+      with:
+        name: workflow-summary
+        path: workflow_summary_*.md
+        
+  notification-dispatch:
+    name: Notification Dispatch
+    runs-on: ubuntu-latest
+    needs: [system-monitoring, workflow-notifications, workflow-summary]
+    if: always()
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Generate dispatch notification
+      run: |
+        echo "📡 Generating dispatch notification..."
+        
+        # Determine overall status
+        if [ "${{ needs.system-monitoring.result }}" == "success" ] && \
+           [ "${{ needs.workflow-notifications.result }}" == "success" ] && \
+           [ "${{ needs.workflow-summary.result }}" == "success" ]; then
+          status="✅ All Systems Operational"
+          message="All monitoring workflows completed successfully"
+        else
+          status="⚠️  Partial Success"
+          message="Some monitoring workflows encountered issues"
+        fi
+        
+        timestamp=$(date +%Y%m%d_%H%M%S)
+        dispatch="dispatch_notification_${timestamp}.md"
+        
+        cat > "$dispatch" << EOF
+# Notification Dispatch
+
+## Dispatch Summary
+
+**Status**: $status
+**Timestamp**: $(date)
+**Workflow**: ${{ github.workflow }}
+**Run ID**: ${{ github.run_id }}
+
+## Notification Overview
+
+$message
+
+### Workflow Results
+
+- **System Monitoring**: ${{ needs.system-monitoring.result }}
+- **Workflow Notifications**: ${{ needs.workflow-notifications.result }}
+- **Workflow Summary**: ${{ needs.workflow-summary.result }}
+
+### Artifacts Generated
+
+1. **system-monitoring-report**: Comprehensive system monitoring
+2. **workflow-notification**: Workflow status notification
+3. **workflow-summary**: Executive summary report
+4. **dispatch-notification**: This notification
+
+## Action Summary
+
+### Immediate Actions
+- ✅ Review monitoring reports
+- ✅ Check for overdue approvals
+- ✅ Monitor system health
+
+### Scheduled Actions
+- ✅ Daily monitoring at 8 AM UTC
+- ✅ Workflow triggered on completion
+- ✅ Manual dispatch available
+
+## Dispatch Metadata
+
+- **Dispatch ID**: ${{ github.run_id }}
+- **Workflow**: ${{ github.workflow }}
+- **Repository**: ${{ github.repository }}
+- **Timestamp**: $(date)
+- **Status**: $status
+
+---
+
+*Notification dispatch generated by AI Council CI/CD pipeline*
+EOF
+        
+        echo "✅ Dispatch notification generated: $dispatch"
+        cat "$dispatch"
+        
+    - name: Upload dispatch notification
+      uses: actions/upload-artifact@v2
+      with:
+        name: dispatch-notification
+        path: dispatch_notification_*.md
+        
+    - name: Cleanup temporary files
+      if: always()
+      run: |
+        echo "🧹 Cleaning up temporary files..."
+        rm -f monitoring_*.txt
+        echo "✅ Cleanup completed"

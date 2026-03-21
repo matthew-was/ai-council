@@ -7,7 +7,7 @@ echo ""
 echo "📖 Reading Project Rules..."
 echo "-----------------------------------"
 # Show key reminders from the rules
-grep -A 5 "Session Checklist" .vibe/rules.md | head -10
+grep -A 5 "Session Checklist" ../rules.md | head -10
 echo ""
 
 echo "📁 Project Status:"

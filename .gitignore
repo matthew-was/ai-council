@@ -52,3 +52,7 @@ develop-eggs/
 
 # Vibe specific
 .vibe/session_log.md
+
+# Memory system
+MEMORY.md
+.vibe/agents/memory_agent/temp/

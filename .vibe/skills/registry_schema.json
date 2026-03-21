@@ -1,0 +1,239 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Council Skills Registry Schema",
+  "description": "Schema for enhanced skills registry with version tracking, status indicators, capabilities, and dependencies",
+  "type": "object",
+  "properties": {
+    "registry_version": {
+      "type": "string",
+      "description": "Version of the registry schema",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "last_updated": {
+      "type": "string",
+      "description": "Date of last registry update",
+      "format": "date"
+    },
+    "skills": {
+      "type": "object",
+      "description": "Collection of all registered skills",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Skill name"
+              },
+              "description": {
+                "type": "string",
+                "description": "Skill description"
+              },
+              "version": {
+                "type": "string",
+                "description": "Semantic version (MAJOR.MINOR.PATCH)",
+                "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+              },
+              "status": {
+                "type": "string",
+                "description": "Skill lifecycle status",
+                "enum": ["active", "deprecated", "experimental", "draft"]
+              },
+              "license": {
+                "type": "string",
+                "description": "Software license"
+              },
+              "author": {
+                "type": "string",
+                "description": "Skill author"
+              },
+              "created": {
+                "type": "string",
+                "description": "Creation date",
+                "format": "date"
+              },
+              "updated": {
+                "type": "string",
+                "description": "Last update date",
+                "format": "date"
+              }
+            },
+            "required": ["name", "description", "version", "status", "license", "author", "created", "updated"]
+          },
+          "capabilities": {
+            "type": "array",
+            "description": "List of skill capabilities",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dependencies": {
+            "type": "object",
+            "description": "Skill dependencies",
+            "properties": {
+              "tools": {
+                "type": "array",
+                "description": "Required external tools",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "files": {
+                "type": "array",
+                "description": "Required configuration files",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "skills": {
+                "type": "array",
+                "description": "Dependent skills",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["tools", "files", "skills"]
+          },
+          "compatibility": {
+            "type": "object",
+            "description": "Version compatibility information",
+            "properties": {
+              "min_version": {
+                "type": "string",
+                "description": "Minimum compatible version",
+                "pattern": "^[0-9]+\\.[0-9]+$"
+              },
+              "max_version": {
+                "type": "string",
+                "description": "Maximum compatible version",
+                "pattern": "^[0-9]+\\.[0-9]+$"
+              },
+              "semver": {
+                "type": "string",
+                "description": "Full semantic version",
+                "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+              },
+              "constraints": {
+                "type": "object",
+                "description": "Version constraints for dependencies",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "SemVer constraint (^, ~, >=, etc.)"
+                }
+              }
+            },
+            "required": ["min_version", "max_version", "semver"]
+          },
+          "scripts": {
+            "type": "array",
+            "description": "Skill scripts with metadata",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Script filename"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Script purpose"
+                },
+                "trigger": {
+                  "type": "string",
+                  "description": "When script is triggered",
+                  "enum": ["pre-commit", "pre-push", "manual", "automatic"]
+                }
+              },
+              "required": ["name", "description", "trigger"]
+            }
+          },
+          "status": {
+            "type": "object",
+            "description": "Operational status information",
+            "properties": {
+              "operational": {
+                "type": "boolean",
+                "description": "Whether skill is currently operational"
+              },
+              "validation": {
+                "type": "string",
+                "description": "Validation status",
+                "enum": ["passed", "failed", "pending", "unknown"]
+              },
+              "last_test": {
+                "type": "string",
+                "description": "Date of last validation test",
+                "format": "date"
+              },
+              "issues": {
+                "type": "array",
+                "description": "Known issues",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["operational", "validation", "last_test", "issues"]
+          },
+          "documentation": {
+            "type": "object",
+            "description": "Documentation information",
+            "properties": {
+              "skill_file": {
+                "type": "string",
+                "description": "Path to SKILL.md file"
+              },
+              "coverage": {
+                "type": "string",
+                "description": "Documentation coverage level",
+                "enum": ["complete", "partial", "minimal", "none"]
+              },
+              "examples": {
+                "type": "boolean",
+                "description": "Whether examples are provided"
+              }
+            },
+            "required": ["skill_file", "coverage", "examples"]
+          }
+        },
+        "required": ["metadata", "capabilities", "dependencies", "compatibility", "scripts", "status", "documentation"]
+      }
+    },
+    "version_matrix": {
+      "type": "object",
+      "description": "Version to skills mapping",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "dependency_graph": {
+      "type": "object",
+      "description": "Complete dependency mapping",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "required_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["depends_on", "required_by"]
+      }
+    }
+  },
+  "required": ["registry_version", "last_updated", "skills", "version_matrix", "dependency_graph"]
+}

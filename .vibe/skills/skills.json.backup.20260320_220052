@@ -19,12 +19,8 @@
         "template_generation"
       ],
       "dependencies": {
-        "tools": [
-          "markdownlint"
-        ],
-        "files": [
-          ".markdownlint.json"
-        ],
+        "tools": ["markdownlint"],
+        "files": [".markdownlint.json"],
         "skills": []
       },
       "compatibility": {
@@ -62,18 +58,10 @@
         "created": "2026-03-15",
         "updated": "2026-03-17"
       },
-      "capabilities": [
-        "pylint_validation",
-        "code_formatting",
-        "type_checking"
-      ],
+      "capabilities": ["pylint_validation", "code_formatting", "type_checking"],
       "dependencies": {
-        "tools": [
-          "pylint"
-        ],
-        "files": [
-          "pyproject.toml"
-        ],
+        "tools": ["pylint"],
+        "files": ["pyproject.toml"],
         "skills": []
       },
       "compatibility": {
@@ -117,13 +105,8 @@
         "test_validation"
       ],
       "dependencies": {
-        "tools": [
-          "pytest",
-          "pytest-cov"
-        ],
-        "files": [
-          "pyproject.toml"
-        ],
+        "tools": ["pytest", "pytest-cov"],
+        "files": ["pyproject.toml"],
         "skills": []
       },
       "compatibility": {
@@ -161,10 +144,7 @@
         "created": "2026-03-15",
         "updated": "2026-03-17"
       },
-      "capabilities": [
-        "diagram_generation",
-        "architecture_validation"
-      ],
+      "capabilities": ["diagram_generation", "architecture_validation"],
       "dependencies": {
         "tools": [],
         "files": [],
@@ -211,9 +191,7 @@
         "documentation_generation"
       ],
       "dependencies": {
-        "tools": [
-          "jq"
-        ],
+        "tools": ["jq"],
         "files": [],
         "skills": []
       },
@@ -261,12 +239,8 @@
       ],
       "dependencies": {
         "tools": [],
-        "files": [
-          "docs/DOCUMENTS.md"
-        ],
-        "skills": [
-          "doc_skill"
-        ]
+        "files": ["docs/DOCUMENTS.md"],
+        "skills": ["doc_skill"]
       },
       "compatibility": {
         "min_version": "1.0",
@@ -311,9 +285,7 @@
         "workflow_monitoring"
       ],
       "dependencies": {
-        "tools": [
-          "jq"
-        ],
+        "tools": ["jq"],
         "files": [],
         "skills": []
       },
@@ -384,9 +356,7 @@
         "version_alerts"
       ],
       "dependencies": {
-        "tools": [
-          "jq"
-        ],
+        "tools": ["jq"],
         "files": [],
         "skills": []
       },
@@ -450,9 +420,7 @@
         "testing_framework"
       ],
       "dependencies": {
-        "tools": [
-          "jq"
-        ],
+        "tools": ["jq"],
         "files": [
           ".vibe/skills/skills.json",
           ".vibe/skills/registry_schema.json"
@@ -603,43 +571,6 @@
         "coverage": "complete",
         "examples": true
       }
-    },
-    "test_new_skill": {
-      "metadata": {
-        "name": "test_new_skill",
-        "description": "Test skill for registration",
-        "version": "1.0",
-        "status": "active",
-        "license": "MIT",
-        "author": "ai-council",
-        "created": "2026-03-20",
-        "updated": "2026-03-20"
-      },
-      "capabilities": [
-        "unknown"
-      ],
-      "dependencies": {
-        "tools": [],
-        "files": [],
-        "skills": []
-      },
-      "compatibility": {
-        "min_version": "1.0",
-        "max_version": "1.0",
-        "semver": "1.0"
-      },
-      "scripts": [],
-      "status": {
-        "operational": true,
-        "validation": "pending",
-        "last_test": "2026-03-20",
-        "issues": []
-      },
-      "documentation": {
-        "skill_file": ".vibe/skills/test_new_skill/SKILL.md",
-        "coverage": "unknown",
-        "examples": false
-      }
     }
   },
   "version_matrix": {
@@ -655,22 +586,13 @@
       "system_management_skill",
       "automation_skill"
     ],
-    "1": [
-      "test_integration_skill2",
-      "test_new_skill",
-      "test_skill_another",
-      "test_skill_new"
-    ],
-    "2": [
-      "test_integration_skill"
-    ]
+    "1": ["test_integration_skill2", "test_skill_another", "test_skill_new"],
+    "2": ["test_integration_skill"]
   },
   "dependency_graph": {
     "doc_skill": {
       "depends_on": [],
-      "required_by": [
-        "doc_change_manager"
-      ]
+      "required_by": ["doc_change_manager"]
     },
     "workflow_skill": {
       "depends_on": [],
@@ -697,9 +619,15 @@
       "required_by": []
     },
     "doc_change_manager": {
-      "depends_on": [
-        "doc_skill"
-      ],
+      "depends_on": ["doc_skill"],
+      "required_by": []
+    },
+    "workflow_skill": {
+      "depends_on": [],
+      "required_by": []
+    },
+    "monitoring_skill": {
+      "depends_on": [],
       "required_by": []
     },
     "test_skill_new": {
@@ -718,15 +646,19 @@
       "depends_on": [],
       "required_by": []
     },
+    "workflow_skill": {
+      "depends_on": [],
+      "required_by": []
+    },
+    "monitoring_skill": {
+      "depends_on": [],
+      "required_by": []
+    },
     "system_management_skill": {
       "depends_on": [],
       "required_by": []
     },
     "automation_skill": {
-      "depends_on": [],
-      "required_by": []
-    },
-    "test_new_skill": {
       "depends_on": [],
       "required_by": []
     }

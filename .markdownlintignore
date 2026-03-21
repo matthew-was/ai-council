@@ -1,0 +1,5 @@
+# Ignore virtual environment directory
+venv/
+
+# Ignore specific files if needed
+# *.generated.md
