@@ -10,7 +10,7 @@ Vibe provides multiple levels of automation to reduce manual tracking overhead w
 
 ```bash
 # Start session
-.vibe/start_session.sh
+.vibe/skills/automation_skill/scripts/start_session.sh
 
 # Manually add to session log
 nano .vibe/session_log.md
@@ -23,20 +23,20 @@ nano .vibe/roadmap.md
 
 ```bash
 # Start with template
-.vibe/update_log.sh
+.vibe/skills/automation_skill/scripts/update_log.sh
 
 # Fill in details manually
 nano .vibe/session_log.md
 
 # Use lab entry for commits
-.vibe/skills/lab_entry/lab_entry.sh combined "Work" commit1 commit2
+.vibe/skills/lab_entry/scripts/lab_entry.sh combined "Work" commit1 commit2
 ```
 
 ### Level 3: Fully Automated
 
 ```bash
 # Run comprehensive automation
-.vibe/auto_update.sh
+.vibe/skills/automation_skill/scripts/auto_update.sh
 
 # Automatically:
 # - Detects active lab entries
@@ -51,10 +51,10 @@ nano .vibe/session_log.md
 
 ```bash
 # 1. Start session
-.vibe/start_session.sh
+.vibe/skills/automation_skill/scripts/start_session.sh
 
 # 2. Begin lab entry
-.vibe/skills/lab_entry/lab_entry.sh start
+.vibe/skills/lab_entry/scripts/lab_entry.sh start
 
 # 3. Set objective for the day
 nano .vibe/session_log.md  # Add objectives
@@ -64,7 +64,7 @@ nano .vibe/session_log.md  # Add objectives
 
 ```bash
 # Add work as you complete it
-.vibe/skills/lab_entry/lab_entry.sh combined "Feature X" commit1 commit2
+.vibe/skills/lab_entry/scripts/lab_entry.sh combined "Feature X" commit1 commit2
 
 # Multiple times per day - no need to remember everything!
 ```
@@ -73,7 +73,7 @@ nano .vibe/session_log.md  # Add objectives
 
 ```bash
 # 1. Run automation
-.vibe/auto_update.sh
+.vibe/skills/automation_skill/scripts/auto_update.sh
 
 # 2. Review generated log
 nano .vibe/session_log.md  # Fill in any gaps
@@ -82,7 +82,7 @@ nano .vibe/session_log.md  # Fill in any gaps
 nano .vibe/roadmap.md
 
 # 4. Finish lab entry
-.vibe/skills/lab_entry/lab_entry.sh finish
+.vibe/skills/lab_entry/scripts/lab_entry.sh finish
 
 # 5. Commit changes
 git add .vibe/session_log.md .vibe/roadmap.md
@@ -145,7 +145,7 @@ git push
 ```bash
 # Add lab entry blocks as you work
 # Don't wait until end of day
-.vibe/skills/lab_entry/lab_entry.sh combined "Fixed bug" abc123
+.vibe/skills/lab_entry/scripts/lab_entry.sh combined "Fixed bug" abc123
 ```
 
 ### 2. **Use Commit Messages Wisely**
@@ -194,7 +194,7 @@ git commit -m "Add user auth: implement JWT validation"
 
 ## 🎯 Best Practices
 
-1. **Start every session** with `.vibe/start_session.sh`
+1. **Start every session** with `.vibe/skills/automation_skill/scripts/start_session.sh`
 2. **Add lab entry blocks** as you complete work
 3. **Run auto_update.sh** at end of day
 4. **Fill in the gaps** with your insights
@@ -225,11 +225,11 @@ git diff --numstat $(git log --since="00:00" --until="23:59" --format="%H" | tai
 
 ## 📚 Resources
 
-- **Lab Entry Skill**: `.vibe/skills/lab_entry/lab_entry.sh`
+- **Lab Entry Skill**: `.vibe/skills/lab_entry/scripts/lab_entry.sh`
 - **Session Log**: `.vibe/session_log.md`
 - **Roadmap**: `.vibe/roadmap.md`
-- **Auto Update**: `.vibe/auto_update.sh`
-- **Start Session**: `.vibe/start_session.sh`
+- **Auto Update**: `.vibe/skills/automation_skill/scripts/auto_update.sh`
+- **Start Session**: `.vibe/skills/automation_skill/scripts/start_session.sh`
 
 ## 🎓 Training
 

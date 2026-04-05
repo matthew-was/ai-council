@@ -10,7 +10,7 @@ Comprehensive project rules, coding standards, and workflow guidelines.
 
 ### 🚀 `start_session.sh`
 Session initialization script that checks status and reminds of key rules.
-**Usage:** `.vibe/start_session.sh`
+**Usage:** `.vibe/skills/automation_skill/scripts/start_session.sh`
 
 ### 📝 `vibe_commands.md`
 Common Vibe commands and usage patterns for this project.

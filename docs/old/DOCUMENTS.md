@@ -29,7 +29,7 @@ graph LR
 
 | Document Name | Description | Latest Version | Status | Owner | Path | Change Log |
 | ------------- | ----------- | -------------- | ------ | ----- | ---- | ---------- |
-| System Document | User requirements and workflows | v1.1 | 🟢 Current | system_doc_creator | docs/system_document.md | See below |
+| System Document | User requirements and workflows | v1.0 | 🟡 Draft | system_doc_creator | docs/system_document.md | See below |
 | Architecture Document | Technical design and components | v2.0 | 🟢 Current | architecture_creator | docs/architecture_document.md | See below |
 | Implementation Tasks | Development work breakdown | v2.0 | 🟢 Current | arch_task_generator | docs/implementation_tasks.md | See below |
 
@@ -37,7 +37,7 @@ graph LR
 
 | System Doc | Architecture Doc | Tasks Doc | Compatibility Status |
 | ---------- | ---------------- | --------- | ------------------- |
-| v1.1 | v2.0 | v2.0 | ✅ Synchronized |
+| v1.0 | v2.0 | v2.0 | ⚠️ Version mismatch |
 | v1.0 | v1.0 | v1.0 | ⚪ Archived |
 
 **Compatibility Rules**:
@@ -46,6 +46,12 @@ graph LR
 - ❌ Red: Major version mismatch (regeneration required)
 
 ## Document Change Log
+
+### 2026-03-23
+- **System Document v1.0**: Created hybrid system document with narrative description + structured requirements
+- **Format**: Descriptive overview sections + clinical requirements sections
+- **Status**: 🟡 Draft - Descriptive Review Needed
+- **Next Steps**: User feedback on narrative sections, then resolve open questions
 
 ### 2026-03-16
 - **System Document v1.1**: Created from Overview v1.0 with complete user requirements
