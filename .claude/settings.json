@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/lint-markdown.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/protect-task-status.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
