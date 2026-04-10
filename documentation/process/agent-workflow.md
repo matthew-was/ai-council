@@ -35,7 +35,7 @@ Agents have no memory between sessions. Each conversation starts fresh. To re-es
 | Project Manager | Senior Developer implementation plan |
 | Implementer | Project Manager task list, Senior Developer implementation plan |
 | Code Reviewer | Code under review, original implementation plan, `documentation/decisions/architecture-decisions.md` |
-| Principles Guardian | Last 5 `post-completion-review-[frontend|backend]-task-[N].md` files, all four principles files |
+| Principles Guardian | Last 5 `post-completion-review-[frontend\|backend]-task-[N].md` files, all four principles files |
 
 **Output documents are the handoff mechanism**: Agents communicate across sessions through documents written to disk. If a document exists at the expected location, the next agent picks it up. This is why every agent's definition of done requires output written to a file — not just discussed in chat.
 

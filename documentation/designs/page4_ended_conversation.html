@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Council – Ended Conversation</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f0f13;
+      color: #e0e0e8;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      height: 48px;
+      background: #18181f;
+      border-bottom: 1px solid #2a2a38;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .app-logo {
+      font-weight: 700;
+      font-size: 15px;
+      color: #a78bfa;
+      letter-spacing: 0.5px;
+      margin-right: 8px;
+    }
+
+    .workspace-switcher {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #24242f;
+      border: 1px solid #35354a;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #c8c8d8;
+    }
+
+    .workspace-switcher .caret {
+      color: #888;
+      font-size: 10px;
+      margin-left: 4px;
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 4px;
+      margin-left: 16px;
+    }
+
+    .topbar-nav a {
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 5px;
+      color: #a0a0b8;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .topbar-nav a.active {
+      background: #2a2a3c;
+      color: #e0e0f0;
+    }
+
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      background: none;
+      border: 1px solid #2a2a38;
+      border-radius: 5px;
+      color: #888;
+      padding: 5px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* SIDEBAR (simplified) */
+    .sidebar {
+      width: 240px;
+      background: #13131a;
+      border-right: 1px solid #22222e;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 12px 14px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #606078;
+    }
+
+    .new-btn {
+      background: #5b3ff8;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 11px;
+      padding: 4px 9px;
+      cursor: pointer;
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0 8px;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #505068;
+      padding: 10px 14px 4px;
+      font-weight: 600;
+    }
+
+    .folder-item {
+      padding: 6px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #9090a8;
+    }
+
+    .folder-item.expanded {
+      color: #c0c0d8;
+    }
+
+    .folder-item.expanded .folder-icon {
+      color: #a78bfa;
+    }
+
+    .folder-count {
+      margin-left: auto;
+      background: #2a2a3c;
+      border-radius: 10px;
+      font-size: 10px;
+      padding: 1px 6px;
+      color: #7070a0;
+    }
+
+    .conv-item {
+      padding: 6px 14px 6px 32px;
+      cursor: pointer;
+      font-size: 12.5px;
+      color: #8888a8;
+      border-left: 2px solid transparent;
+      display: flex;
+      align-items: center;
+    }
+
+    .conv-item.active {
+      background: #1e1e2e;
+      border-left: 2px solid #a78bfa;
+      color: #dde0f8;
+    }
+
+    .ended-badge {
+      font-size: 9px;
+      margin-left: auto;
+      background: #252535;
+      color: #505070;
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+
+    .conv-standalone {
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: 12.5px;
+      color: #8888a8;
+      border-left: 2px solid transparent;
+    }
+
+    .mentor-item {
+      margin-top: auto;
+      border-top: 1px solid #22222e;
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #15151e;
+    }
+
+    .mentor-badge {
+      background: #312060;
+      border: 1px solid #5b3ff8;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #a78bfa;
+      padding: 2px 6px;
+    }
+
+    .mentor-label {
+      font-size: 13px;
+      color: #b0a0e0;
+      font-weight: 500;
+    }
+
+    .mentor-dot {
+      width: 7px;
+      height: 7px;
+      background: #a78bfa;
+      border-radius: 50%;
+      margin-left: auto;
+    }
+
+    /* MAIN CONTENT */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Conversation header */
+    .conv-header {
+      padding: 18px 28px 14px;
+      border-bottom: 1px solid #22222e;
+      background: #15151e;
+      flex-shrink: 0;
+    }
+
+    .conv-header-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .conv-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #e0e0f0;
+    }
+
+    .ended-status {
+      background: #252535;
+      border: 1px solid #3a3a50;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #7070a0;
+      padding: 3px 9px;
+    }
+
+    .conv-header-meta {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 12px;
+      color: #505070;
+    }
+
+    .meta-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .persona-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .conv-header-actions {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .action-btn {
+      background: none;
+      border: 1px solid #2a2a3c;
+      border-radius: 5px;
+      font-size: 11px;
+      color: #8080a0;
+      padding: 5px 12px;
+      cursor: pointer;
+    }
+
+    .report-btn {
+      background: #1e2a3a;
+      border-color: #3a5a7a;
+      color: #6aabf7;
+    }
+
+    /* Transcript (read-only) */
+    .transcript-area {
+      padding: 20px 28px;
+      max-width: 820px;
+    }
+
+    .transcript-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #404058;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .transcript-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #22222e;
+    }
+
+    .msg {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .msg.user {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .avatar.user-av {
+      background: #2a4060;
+      color: #6aabf7;
+    }
+
+    .avatar.p1-av {
+      background: #2a2040;
+      color: #a78bfa;
+    }
+
+    .avatar.p2-av {
+      background: #1e3028;
+      color: #6ad098;
+    }
+
+    .avatar.p3-av {
+      background: #30201e;
+      color: #f08080;
+    }
+
+    .bubble {
+      background: #1a1a26;
+      border: 1px solid #25253a;
+      border-radius: 9px;
+      padding: 9px 13px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #c0c0d4;
+      max-width: 580px;
+    }
+
+    .msg.user .bubble {
+      background: #1a2636;
+      border-color: #25406a;
+      color: #b8cce0;
+    }
+
+    .speaker {
+      font-size: 10px;
+      font-weight: 600;
+      color: #606080;
+      margin-bottom: 3px;
+    }
+
+    .speaker.p1 {
+      color: #a78bfa;
+    }
+
+    .speaker.p2 {
+      color: #6ad098;
+    }
+
+    .speaker.p3 {
+      color: #f08080;
+    }
+
+    .read-only-notice {
+      font-size: 11px;
+      color: #404060;
+      background: #181828;
+      border: 1px dashed #2a2a40;
+      border-radius: 5px;
+      padding: 8px 14px;
+      margin: 0 28px 12px;
+      text-align: center;
+    }
+
+    /* SUMMARY PANEL */
+    .summary-panel {
+      margin: 0 28px 28px;
+      background: #15151e;
+      border: 1px solid #2a2a3c;
+      border-radius: 10px;
+    }
+
+    .summary-header {
+      padding: 12px 18px 10px;
+      border-bottom: 1px solid #22222e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .summary-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #c0c0e0;
+    }
+
+    .copy-btn {
+      font-size: 11px;
+      background: none;
+      border: 1px solid #2a2a3c;
+      border-radius: 4px;
+      color: #6060a0;
+      padding: 3px 9px;
+      cursor: pointer;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .summary-section {
+      padding: 14px 18px;
+      border-right: 1px solid #22222e;
+      border-bottom: 1px solid #22222e;
+    }
+
+    .summary-section:nth-child(even) {
+      border-right: none;
+    }
+
+    .summary-section:nth-child(3),
+    .summary-section:nth-child(4) {
+      border-bottom: none;
+    }
+
+    .summary-section-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .label-takeaway {
+      color: #6ad098;
+    }
+
+    .label-agree {
+      color: #6aabf7;
+    }
+
+    .label-disagree {
+      color: #f0a060;
+    }
+
+    .label-actions {
+      color: #a78bfa;
+    }
+
+    .summary-item {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+      font-size: 12.5px;
+      color: #a0a0c0;
+      line-height: 1.45;
+    }
+
+    .summary-item::before {
+      content: '•';
+      color: #404060;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* POST-CONVERSATION ACTIONS */
+    .post-actions {
+      margin: 0 28px 28px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .post-action-card {
+      flex: 1;
+      background: #15151e;
+      border: 1px solid #2a2a3c;
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .post-action-card.highlight {
+      border-color: #3a5060;
+      background: #131e28;
+    }
+
+    .post-action-card.placeholder {
+      border-style: dashed;
+      border-color: #252535;
+      background: #111119;
+    }
+
+    .pac-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #c0c0e0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pac-title.dim {
+      color: #404060;
+    }
+
+    .pac-desc {
+      font-size: 12px;
+      color: #606080;
+      line-height: 1.45;
+    }
+
+    .pac-desc.dim {
+      color: #303050;
+    }
+
+    .pac-btn {
+      align-self: flex-start;
+      margin-top: 6px;
+      background: #1e3040;
+      border: 1px solid #3a6080;
+      border-radius: 5px;
+      color: #6aabf7;
+      font-size: 12px;
+      padding: 5px 14px;
+      cursor: pointer;
+    }
+
+    .pac-btn.muted {
+      background: #1c1c2a;
+      border-color: #2a2a3c;
+      color: #404068;
+      cursor: not-allowed;
+    }
+
+    .version-tag {
+      font-size: 10px;
+      color: #404060;
+      font-style: italic;
+    }
+
+    .page-label {
+      position: fixed;
+      bottom: 8px;
+      right: 12px;
+      font-size: 10px;
+      color: #303048;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="topbar">
+    <span class="app-logo">AI Council</span>
+    <div class="workspace-switcher">🏢 Day-to-Day Team <span
+        class="caret">▾</span></div>
+    <nav class="topbar-nav">
+      <a class="active">Discussions</a>
+      <a>Personas</a>
+      <a>Documents</a>
+    </nav>
+    <div class="topbar-right">
+      <button class="icon-btn">⚙ Settings</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Discussions</span>
+        <button class="new-btn">+ New</button>
+      </div>
+      <div class="sidebar-scroll">
+        <div class="sidebar-section-label">Folders</div>
+        <div class="folder-item expanded">
+          <span class="folder-icon">📂</span> Product Strategy
+          <span class="folder-count">4</span>
+        </div>
+        <div class="conv-item active">Pricing Model Debate <span
+            class="ended-badge">ended</span></div>
+        <div class="conv-item">Market Expansion Ideas</div>
+        <div class="conv-item">Roadmap Q3 Review</div>
+        <div class="folder-item">
+          <span class="folder-icon">📁</span> Hiring
+          <span class="folder-count">2</span>
+        </div>
+        <div class="sidebar-section-label">Recent</div>
+        <div class="conv-standalone">Team Restructure Options</div>
+        <div class="conv-standalone">New Feature Scoping</div>
+      </div>
+      <div class="mentor-item">
+        <span class="mentor-badge">MENTOR</span>
+        <span class="mentor-label">My Mentor</span>
+        <span class="mentor-dot"></span>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Conversation header -->
+      <div class="conv-header">
+        <div class="conv-header-top">
+          <span class="conv-title">Pricing Model Debate</span>
+          <span class="ended-status">🔒 Read-only · Ended</span>
+          <div class="conv-header-actions">
+            <button class="action-btn">↗ Export Markdown</button>
+            <button class="action-btn report-btn">📄 Generate Report</button>
+          </div>
+        </div>
+        <div class="conv-header-meta">
+          <span class="meta-chip">Round-Robin</span>
+          <span>·</span>
+          <span class="meta-chip"><span class="persona-dot"
+              style="background:#a78bfa"></span> Devil's Advocate</span>
+          <span class="meta-chip"><span class="persona-dot"
+              style="background:#6ad098"></span> Financial Critic</span>
+          <span class="meta-chip"><span class="persona-dot"
+              style="background:#f08080"></span> Customer Voice</span>
+          <span>·</span>
+          <span>Ended 9 Apr 2026, 12:03</span>
+        </div>
+      </div>
+
+      <!-- Read-only notice -->
+      <div class="read-only-notice" style="margin-top:16px;">🔒 This
+        conversation has ended and is read-only. No new messages can be added.
+      </div>
+
+      <!-- Transcript snippet -->
+      <div class="transcript-area">
+        <div class="transcript-label">Conversation Transcript</div>
+
+        <div class="msg user">
+          <div class="avatar user-av">M</div>
+          <div>
+            <div class="speaker" style="text-align:right;">You</div>
+            <div class="bubble">I'm thinking we shift to usage-based pricing to
+              lower the barrier to entry and charge more as customers scale.
+            </div>
+          </div>
+        </div>
+
+        <div class="msg">
+          <div class="avatar p1-av">DA</div>
+          <div>
+            <div class="speaker p1">Devil's Advocate</div>
+            <div class="bubble">Revenue predictability will suffer. Usage-based
+              models are notoriously hard to forecast — your finance team will
+              push back the moment variance arrives.</div>
+          </div>
+        </div>
+
+        <div class="msg">
+          <div class="avatar p2-av">FC</div>
+          <div>
+            <div class="speaker p2">Financial Critic</div>
+            <div class="bubble">You need tight unit economics modelling before
+              committing. Do you know where your margin inflects as usage
+              scales?</div>
+          </div>
+        </div>
+
+        <div class="msg">
+          <div class="avatar p3-av">CV</div>
+          <div>
+            <div class="speaker p3">Customer Voice</div>
+            <div class="bubble">Customers love paying for what they use — but
+              unpredictable bills cause churn. Consider a hybrid: base fee plus
+              usage for overages. Best of both worlds.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-panel">
+        <div class="summary-header">
+          <span class="summary-title">✦ Automatic Summary</span>
+          <button class="copy-btn">Copy as Markdown</button>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-section">
+            <div class="summary-section-label label-takeaway">✓ Key Takeaways
+            </div>
+            <div class="summary-item">Usage-based pricing reduces barrier to
+              entry but undermines revenue predictability.</div>
+            <div class="summary-item">Unit economics must be modelled before any
+              pricing change is committed to.</div>
+            <div class="summary-item">A hybrid model (base fee + usage overage)
+              emerged as a viable middle path.</div>
+          </div>
+          <div class="summary-section">
+            <div class="summary-section-label label-agree">◎ Points of Agreement
+            </div>
+            <div class="summary-item">Current data is insufficient to validate
+              the proposal — more modelling is needed.</div>
+            <div class="summary-item">Customer perception of bill
+              unpredictability is a real churn risk.</div>
+          </div>
+          <div class="summary-section">
+            <div class="summary-section-label label-disagree">⟁ Points of
+              Disagreement</div>
+            <div class="summary-item">Extent of revenue risk: DA saw it as a
+              dealbreaker; Customer Voice was more optimistic.</div>
+            <div class="summary-item">Whether growth can absorb margin gaps at
+              scale was contested.</div>
+          </div>
+          <div class="summary-section">
+            <div class="summary-section-label label-actions">→ Action Items
+            </div>
+            <div class="summary-item">Build unit economics model with margin
+              inflection analysis before next meeting.</div>
+            <div class="summary-item">Prototype a hybrid pricing tier structure
+              for review.</div>
+            <div class="summary-item">Survey 5 existing customers on bill
+              predictability preferences.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post-conversation actions -->
+      <div class="post-actions">
+        <div class="post-action-card highlight">
+          <span class="pac-title">📄 Generate Formal Report</span>
+          <span class="pac-desc">Create a structured Markdown report covering
+            all key points, Persona perspectives, and recommended next steps.
+            Saved to your Documents area.</span>
+          <button class="pac-btn">Generate Report</button>
+        </div>
+        <div class="post-action-card">
+          <span class="pac-title">↗ Export Raw Transcript</span>
+          <span class="pac-desc">Download a plain Markdown file of all messages
+            in order with speaker labels.</span>
+          <button class="pac-btn"
+            style="background:none;border-color:#303050;color:#6060a0;">Export
+            .md</button>
+        </div>
+        <div class="post-action-card placeholder">
+          <span class="pac-title dim">⟡ Canonise this Conversation</span>
+          <span class="pac-desc dim">Make the outcomes of this conversation part
+            of participating Personas' persistent memory.</span>
+          <button class="pac-btn muted">Canonise</button>
+          <span class="version-tag">Coming in a future version</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="page-label">Page 4 – Ended Conversation</div>
+</body>
+
+</html>

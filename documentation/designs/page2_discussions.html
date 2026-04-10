@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Council – Discussions (Active Conversation)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f0f13;
+      color: #e0e0e8;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      height: 48px;
+      background: #18181f;
+      border-bottom: 1px solid #2a2a38;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .app-logo {
+      font-weight: 700;
+      font-size: 15px;
+      color: #a78bfa;
+      letter-spacing: 0.5px;
+      margin-right: 8px;
+    }
+
+    .workspace-switcher {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #24242f;
+      border: 1px solid #35354a;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #c8c8d8;
+    }
+
+    .workspace-switcher .caret {
+      color: #888;
+      font-size: 10px;
+      margin-left: 4px;
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 4px;
+      margin-left: 16px;
+    }
+
+    .topbar-nav a {
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 5px;
+      color: #a0a0b8;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .topbar-nav a.active {
+      background: #2a2a3c;
+      color: #e0e0f0;
+    }
+
+    .topbar-nav a:hover:not(.active) {
+      background: #1f1f2c;
+    }
+
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      background: none;
+      border: 1px solid #2a2a38;
+      border-radius: 5px;
+      color: #888;
+      padding: 5px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* LAYOUT */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 240px;
+      background: #13131a;
+      border-right: 1px solid #22222e;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 12px 14px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #606078;
+      color: #606078;
+    }
+
+    .new-btn {
+      background: #5b3ff8;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 11px;
+      padding: 4px 9px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0 8px;
+    }
+
+    /* Sidebar sections */
+    .sidebar-section-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #505068;
+      padding: 10px 14px 4px;
+      font-weight: 600;
+    }
+
+    .folder-item {
+      padding: 6px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #9090a8;
+    }
+
+    .folder-item:hover {
+      background: #1c1c28;
+    }
+
+    .folder-icon {
+      font-size: 12px;
+    }
+
+    .folder-count {
+      margin-left: auto;
+      background: #2a2a3c;
+      border-radius: 10px;
+      font-size: 10px;
+      padding: 1px 6px;
+      color: #7070a0;
+    }
+
+    .folder-item.expanded {
+      color: #c0c0d8;
+    }
+
+    .folder-item.expanded .folder-icon {
+      color: #a78bfa;
+    }
+
+    .conversation-item {
+      padding: 6px 14px 6px 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      font-size: 12.5px;
+      color: #8888a8;
+      border-left: 2px solid transparent;
+    }
+
+    .conversation-item:hover {
+      background: #1c1c28;
+    }
+
+    .conversation-item.active {
+      background: #1e1e2e;
+      border-left: 2px solid #a78bfa;
+      color: #dde0f8;
+    }
+
+    .pin-icon {
+      font-size: 9px;
+      margin-left: auto;
+      color: #6060a0;
+    }
+
+    /* Standalone conversation */
+    .conv-standalone {
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: 12.5px;
+      color: #8888a8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-left: 2px solid transparent;
+    }
+
+    .conv-standalone:hover {
+      background: #1c1c28;
+    }
+
+    .conv-standalone.active {
+      background: #1e1e2e;
+      border-left: 2px solid #a78bfa;
+      color: #dde0f8;
+    }
+
+    .conv-meta {
+      font-size: 10px;
+      color: #50506a;
+      padding: 0 14px 2px;
+    }
+
+    /* Mentor item */
+    .mentor-item {
+      margin-top: auto;
+      border-top: 1px solid #22222e;
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #15151e;
+    }
+
+    .mentor-item:hover {
+      background: #1c1c28;
+    }
+
+    .mentor-badge {
+      background: #312060;
+      border: 1px solid #5b3ff8;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #a78bfa;
+      padding: 2px 6px;
+      letter-spacing: 0.3px;
+    }
+
+    .mentor-label {
+      font-size: 13px;
+      color: #b0a0e0;
+      font-weight: 500;
+    }
+
+    .mentor-dot {
+      width: 7px;
+      height: 7px;
+      background: #a78bfa;
+      border-radius: 50%;
+      margin-left: auto;
+    }
+
+    /* CONVERSATION AREA */
+    .conv-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .conv-topbar {
+      padding: 12px 20px;
+      border-bottom: 1px solid #22222e;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #15151e;
+      flex-shrink: 0;
+    }
+
+    .conv-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e0e0f0;
+    }
+
+    .conv-mode-badge {
+      background: #1e2a3a;
+      border: 1px solid #2a4060;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #6aabf7;
+      padding: 2px 8px;
+    }
+
+    .persona-chips {
+      display: flex;
+      gap: 6px;
+      margin-left: 8px;
+    }
+
+    .persona-chip {
+      background: #2a2040;
+      border: 1px solid #4a3880;
+      border-radius: 12px;
+      font-size: 11px;
+      color: #c0a8f0;
+      padding: 2px 9px;
+    }
+
+    .conv-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    .conv-action-btn {
+      background: none;
+      border: 1px solid #2a2a3c;
+      border-radius: 5px;
+      color: #8080a0;
+      font-size: 11px;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+
+    .end-btn {
+      background: #3a1818;
+      border-color: #602020;
+      color: #e06060;
+    }
+
+    .conv-main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Messages + Context panel wrapper */
+    .conv-body {
+      flex: 1;
+      display: flex;
+      overflow: scroll;
+      flex-direction: column;
+    }
+
+    .messages-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 24px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .msg {
+      display: flex;
+      gap: 10px;
+      max-width: 780px;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .avatar.user-av {
+      background: #2a4060;
+      color: #6aabf7;
+    }
+
+    .avatar.persona-av {
+      background: #2a2040;
+      color: #a78bfa;
+    }
+
+    .avatar.persona2-av {
+      background: #1e3028;
+      color: #6ad098;
+    }
+
+    .bubble {
+      background: #1e1e2a;
+      border: 1px solid #2a2a3c;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: #d0d0e0;
+      max-width: 600px;
+    }
+
+    .msg.user .bubble {
+      background: #1c2a40;
+      border-color: #2a4060;
+      color: #c8dcf0;
+    }
+
+    .msg-meta {
+      font-size: 10px;
+      color: #505070;
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+
+    .speaker {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8888aa;
+      margin-bottom: 3px;
+    }
+
+    .speaker.persona-name {
+      color: #a78bfa;
+    }
+
+    .speaker.persona2-name {
+      color: #6ad098;
+    }
+
+    /* Orchestrator suggestion */
+    .orchestrator-suggestion {
+      margin: 0 24px;
+      background: #1a1a2c;
+      border: 1px solid #3a3a58;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      color: #a0a0c0;
+    }
+
+    .orch-icon {
+      font-size: 14px;
+    }
+
+    .orch-text {
+      flex: 1;
+    }
+
+    .orch-text strong {
+      color: #c8c0f0;
+    }
+
+    .orch-add {
+      background: #2a1f50;
+      border: 1px solid #5b3ff8;
+      border-radius: 5px;
+      color: #a78bfa;
+      font-size: 11px;
+      padding: 4px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .orch-dismiss {
+      background: none;
+      border: none;
+      color: #505068;
+      font-size: 11px;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    /* Input bar */
+    .input-bar {
+      padding: 12px 20px 16px;
+      border-top: 1px solid #22222e;
+      background: #13131a;
+      flex-shrink: 0;
+    }
+
+    .input-wrap {
+      background: #1c1c2a;
+      border: 1px solid #30303e;
+      border-radius: 10px;
+      display: flex;
+      align-items: flex-end;
+      padding: 8px 12px;
+      gap: 8px;
+    }
+
+    .input-field {
+      flex: 1;
+      background: none;
+      border: none;
+      color: #e0e0f0;
+      font-size: 13.5px;
+      resize: none;
+      outline: none;
+      line-height: 1.5;
+      min-height: 22px;
+      font-family: inherit;
+    }
+
+    .input-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .input-icon {
+      background: none;
+      border: none;
+      color: #505070;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .send-btn {
+      background: #5b3ff8;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 12px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    /* CONTEXT PANEL */
+    .context-panel {
+      width: 260px;
+      border-left: 1px solid #22222e;
+      background: #13131a;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .cp-header {
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid #22222e;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cp-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #8888aa;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .cp-edit-btn {
+      font-size: 11px;
+      background: none;
+      border: 1px solid #2a2a3c;
+      border-radius: 4px;
+      color: #6060a0;
+      padding: 2px 7px;
+      cursor: pointer;
+    }
+
+    .cp-body {
+      padding: 12px 14px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .cp-hint {
+      font-size: 11.5px;
+      color: #50506a;
+      font-style: italic;
+      margin-bottom: 10px;
+    }
+
+    .cp-entry {
+      margin-bottom: 10px;
+    }
+
+    .cp-entry-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #505068;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .cp-entry-text {
+      font-size: 12px;
+      color: #a0a0c0;
+      line-height: 1.5;
+      background: #1a1a28;
+      border-radius: 5px;
+      padding: 6px 8px;
+      border: 1px solid #25253a;
+    }
+
+    .cp-footer {
+      padding: 8px 14px 12px;
+      border-top: 1px solid #22222e;
+    }
+
+    .cp-limit {
+      font-size: 10px;
+      color: #404058;
+      text-align: right;
+    }
+
+    .page-label {
+      position: fixed;
+      bottom: 8px;
+      right: 12px;
+      font-size: 10px;
+      color: #303048;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <span class="app-logo">AI Council</span>
+    <div class="workspace-switcher">
+      🏢 Day-to-Day Team <span class="caret">▾</span>
+    </div>
+    <nav class="topbar-nav">
+      <a class="active">Discussions</a>
+      <a>Personas</a>
+      <a>Documents</a>
+    </nav>
+    <div class="topbar-right">
+      <button class="icon-btn">⚙ Settings</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Discussions</span>
+        <button class="new-btn">+ New</button>
+      </div>
+      <div class="sidebar-scroll">
+
+        <!-- Folders -->
+        <div class="sidebar-section-label">Folders</div>
+        <div class="folder-item expanded">
+          <span class="folder-icon">📂</span> Product Strategy
+          <span class="folder-count">4</span>
+        </div>
+        <div class="conversation-item active">
+          Pricing Model Debate
+          <span class="pin-icon">📌</span>
+        </div>
+        <div class="conversation-item">Market Expansion Ideas</div>
+        <div class="conversation-item">Roadmap Q3 Review</div>
+        <div class="conversation-item">Competitive Positioning</div>
+        <div class="folder-item">
+          <span class="folder-icon">📁</span> Hiring
+          <span class="folder-count">2</span>
+        </div>
+
+        <!-- Pinned -->
+        <div class="sidebar-section-label">Pinned</div>
+        <div class="conv-standalone">
+          📌 Pre-launch Risk Review
+        </div>
+        <div class="conv-meta">Pinned 2 days ago</div>
+
+        <!-- Standalone -->
+        <div class="sidebar-section-label">Recent</div>
+        <div class="conv-standalone">Team Restructure Options</div>
+        <div class="conv-standalone">New Feature Scoping</div>
+        <div class="conv-standalone">Budget Concerns Q4</div>
+        <div class="conv-standalone">API Partnership Ideas</div>
+
+      </div>
+
+      <!-- Mentor -->
+      <div class="mentor-item">
+        <span class="mentor-badge">MENTOR</span>
+        <span class="mentor-label">My Mentor</span>
+        <span class="mentor-dot"></span>
+      </div>
+    </div>
+
+    <!-- CONVERSATION AREA -->
+    <div class="conv-area">
+      <div class="conv-topbar">
+        <span class="conv-title">Pricing Model Debate</span>
+        <span class="conv-mode-badge">Round-Robin</span>
+        <div class="persona-chips">
+          <span class="persona-chip">Devil's Advocate</span>
+          <span class="persona-chip"
+            style="background:#1e2e20;border-color:#3a6040;color:#6ad098;">Financial
+            Critic</span>
+          <span class="persona-chip"
+            style="background:#1e2020;border-color:#604040;color:#f08080;">Customer
+            Voice</span>
+        </div>
+        <div class="conv-actions">
+          <button class="conv-action-btn">+ Add Persona</button>
+          <button class="conv-action-btn">↗ Export</button>
+          <button class="conv-action-btn end-btn">End Conversation</button>
+        </div>
+      </div>
+
+      <div class="conv-main">
+        <div class="conv-body">
+          <div class="messages-wrap">
+
+            <div class="msg user">
+              <div class="avatar user-av">M</div>
+              <div>
+                <div class="msg-meta" style="text-align:right;">You · 11:42
+                </div>
+                <div class="bubble">I'm thinking we shift to a usage-based
+                  pricing
+                  model instead of our current flat-rate subscription. The idea
+                  is
+                  to lower the barrier to entry and charge more as customers
+                  scale. What do you all think?</div>
+              </div>
+            </div>
+
+            <div class="msg">
+              <div class="avatar persona-av">DA</div>
+              <div>
+                <div class="speaker persona-name">Devil's Advocate</div>
+                <div class="bubble">Before we celebrate the elegance of this
+                  idea
+                  — have we actually stress-tested what happens to revenue
+                  predictability? Usage-based models are notoriously hard to
+                  forecast, and your finance team will push back hard the moment
+                  the first quarter of variance arrives.</div>
+              </div>
+            </div>
+
+            <div class="msg">
+              <div class="avatar persona2-av">FC</div>
+              <div>
+                <div class="speaker persona2-name">Financial Critic</div>
+                <div class="bubble">Devil's Advocate is right to flag that.
+                  Beyond
+                  predictability, consider your unit economics carefully. If
+                  you're absorbing infrastructure costs at scale, you need very
+                  tight modelling on where your margin inflects. Do you have
+                  that
+                  data yet?</div>
+              </div>
+            </div>
+
+            <div class="msg user">
+              <div class="avatar user-av">M</div>
+              <div>
+                <div class="msg-meta" style="text-align:right;">You · 11:45
+                </div>
+                <div class="bubble">We have rough models but nothing validated.
+                  I
+                  guess I assumed growth would cover the margin gap. Maybe I'm
+                  being optimistic.</div>
+              </div>
+            </div>
+
+            <div class="msg">
+              <div class="avatar persona-av">DA</div>
+              <div>
+                <div class="speaker persona-name">Devil's Advocate</div>
+                <div class="bubble">"Growth will cover it" is a hope, not a
+                  plan.
+                  What happens in month three when your largest customer churns
+                  and your usage revenue drops 30% overnight? Flat-rate gives
+                  you
+                  a floor. Usage-based removes it entirely.</div>
+              </div>
+            </div>
+
+            <!-- Orchestrator suggestion -->
+
+          </div>
+
+          <!-- Orchestrator suggestion banner -->
+          <div class="orchestrator-suggestion">
+            <span class="orch-icon">🎯</span>
+            <span class="orch-text">The <strong>Risk Analyst</strong> Persona
+              may
+              be relevant — the conversation is moving toward financial risk
+              territory.</span>
+            <button class="orch-add">Add to Conversation</button>
+            <button class="orch-dismiss">Dismiss</button>
+          </div>
+
+          <!-- Input bar -->
+          <div class="input-bar">
+            <div class="input-wrap">
+              <textarea class="input-field" rows="1"
+                placeholder="Reply, or use @Orchestrator to request a summary…"></textarea>
+              <div class="input-actions">
+                <button class="input-icon">📎</button>
+                <button class="send-btn">Send</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- CONTEXT PANEL -->
+        <div class="context-panel">
+          <div class="cp-header">
+            <span class="cp-title">Context Panel</span>
+            <button class="cp-edit-btn">Edit</button>
+          </div>
+          <div class="cp-body">
+            <p class="cp-hint">Always included in model context. Edit to
+              preserve
+              key decisions as the conversation grows.</p>
+
+            <div class="cp-entry">
+              <div class="cp-entry-label">Core Proposal</div>
+              <div class="cp-entry-text">Shift from flat-rate subscription to
+                usage-based pricing to lower barrier to entry.</div>
+            </div>
+
+            <div class="cp-entry">
+              <div class="cp-entry-label">Key Constraint</div>
+              <div class="cp-entry-text">No validated unit economics model yet.
+                Revenue predictability is a concern.</div>
+            </div>
+
+            <div class="cp-entry">
+              <div class="cp-entry-label">Open Question</div>
+              <div class="cp-entry-text">Where does margin inflect as usage
+                scales? Need data before committing.</div>
+            </div>
+          </div>
+          <div class="cp-footer">
+            <div class="cp-limit">312 / 800 chars</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="page-label">Page 2 – Discussions: Active Conversation</div>
+</body>
+
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Council – Mentor Conversation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f13; color: #e0e0e8; height: 100vh; display: flex; flex-direction: column; }
+
+  /* TOP BAR */
+  .topbar { height: 48px; background: #18181f; border-bottom: 1px solid #2a2a38; display: flex; align-items: center; padding: 0 16px; gap: 12px; flex-shrink: 0; }
+  .app-logo { font-weight: 700; font-size: 15px; color: #a78bfa; letter-spacing: 0.5px; margin-right: 8px; }
+  .workspace-switcher { display: flex; align-items: center; gap: 6px; background: #24242f; border: 1px solid #35354a; border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 13px; color: #c8c8d8; }
+  .workspace-switcher .caret { color: #888; font-size: 10px; margin-left: 4px; }
+  .topbar-nav { display: flex; gap: 4px; margin-left: 16px; }
+  .topbar-nav a { font-size: 13px; padding: 5px 12px; border-radius: 5px; color: #a0a0b8; text-decoration: none; cursor: pointer; }
+  .topbar-nav a.active { background: #2a2a3c; color: #e0e0f0; }
+  .topbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .icon-btn { background: none; border: 1px solid #2a2a38; border-radius: 5px; color: #888; padding: 5px 8px; font-size: 12px; cursor: pointer; }
+
+  /* LAYOUT */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width: 240px; background: #13131a; border-right: 1px solid #22222e; display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+  .sidebar-header { padding: 12px 14px 8px; display: flex; align-items: center; justify-content: space-between; }
+  .sidebar-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #606078; }
+  .new-btn { background: #5b3ff8; border: none; border-radius: 5px; color: white; font-size: 11px; padding: 4px 9px; cursor: pointer; }
+  .sidebar-scroll { flex: 1; overflow-y: auto; padding: 4px 0 8px; }
+  .sidebar-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px; color: #505068; padding: 10px 14px 4px; font-weight: 600; }
+  .folder-item { padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #9090a8; }
+  .folder-count { margin-left: auto; background: #2a2a3c; border-radius: 10px; font-size: 10px; padding: 1px 6px; color: #7070a0; }
+  .conv-standalone { padding: 6px 14px; cursor: pointer; font-size: 12.5px; color: #8888a8; border-left: 2px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .conv-standalone:hover { background: #1c1c28; }
+  .mentor-item { margin-top: auto; border-top: 1px solid #3a2f60; padding: 10px 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; background: #19152a; border-left: 3px solid #5b3ff8; }
+  .mentor-badge { background: #312060; border: 1px solid #5b3ff8; border-radius: 5px; font-size: 10px; font-weight: 600; color: #a78bfa; padding: 2px 6px; }
+  .mentor-label { font-size: 13px; color: #c8b8f8; font-weight: 600; }
+  .mentor-dot { width: 7px; height: 7px; background: #a78bfa; border-radius: 50%; margin-left: auto; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* MENTOR CONVERSATION AREA */
+  .conv-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #0f0f15; }
+
+  /* Mentor top bar */
+  .mentor-topbar { padding: 12px 22px 12px; border-bottom: 1px solid #2a2040; display: flex; align-items: center; gap: 12px; background: #12101e; flex-shrink: 0; }
+  .mentor-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #3a1f80, #5b3ff8); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #e0d8ff; border: 2px solid #5b3ff8; flex-shrink: 0; }
+  .mentor-title-group { flex: 1; }
+  .mentor-title { font-size: 16px; font-weight: 700; color: #e0d8ff; }
+  .mentor-subtitle { font-size: 11px; color: #7060b0; margin-top: 1px; }
+  .mentor-actions { display: flex; gap: 8px; }
+  .mentor-action-btn { background: none; border: 1px solid #2a2040; border-radius: 5px; color: #7060a0; font-size: 11px; padding: 4px 10px; cursor: pointer; }
+  .new-chapter-btn { border-color: #3a2a60; color: #a090e0; }
+
+  /* Chapter prompt banner */
+  .chapter-prompt { margin: 14px 22px 0; background: #1a1230; border: 1px solid #3a2860; border-radius: 10px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 12px; flex-shrink: 0; }
+  .chapter-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .chapter-text { flex: 1; }
+  .chapter-text-title { font-size: 13px; font-weight: 600; color: #c8b8f8; margin-bottom: 3px; }
+  .chapter-text-body { font-size: 12px; color: #806090; line-height: 1.5; }
+  .chapter-buttons { display: flex; gap: 8px; margin-top: 10px; }
+  .chapter-btn { border-radius: 5px; font-size: 12px; padding: 5px 13px; cursor: pointer; border: 1px solid; }
+  .chapter-btn.continue { background: #1e1535; border-color: #4a3580; color: #b0a0e8; }
+  .chapter-btn.fresh { background: #5b3ff8; border-color: #5b3ff8; color: white; }
+
+  /* Chapter divider */
+  .chapter-divider { display: flex; align-items: center; gap: 10px; padding: 16px 22px 4px; flex-shrink: 0; }
+  .chapter-divider-line { flex: 1; height: 1px; background: #2a2040; }
+  .chapter-divider-label { font-size: 10px; color: #4a3880; text-transform: uppercase; letter-spacing: 0.7px; font-weight: 600; white-space: nowrap; }
+
+  /* Messages */
+  .messages-wrap { flex: 1; overflow-y: auto; padding: 16px 22px 8px; display: flex; flex-direction: column; gap: 16px; }
+  .msg { display: flex; gap: 10px; }
+  .msg.user { flex-direction: row-reverse; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-top: 2px; }
+  .avatar.u { background: #2a4060; color: #6aabf7; }
+  .avatar.m { background: linear-gradient(135deg, #3a1f80, #5b3ff8); color: #e0d8ff; }
+  .bubble { border-radius: 10px; padding: 10px 14px; font-size: 13.5px; line-height: 1.6; max-width: 620px; }
+  .bubble.mentor { background: #1a1230; border: 1px solid #2a2040; color: #ccc0f0; }
+  .bubble.user { background: #1a2636; border: 1px solid #25406a; color: #b8cce0; }
+  .speaker { font-size: 10px; font-weight: 600; color: #7060b0; margin-bottom: 3px; }
+  .speaker.u { color: #5080a0; text-align: right; }
+
+  /* Input bar */
+  .input-bar { padding: 12px 22px 16px; border-top: 1px solid #1e1835; background: #0f0f15; flex-shrink: 0; }
+  .input-wrap { background: #18122e; border: 1px solid #2e2050; border-radius: 10px; display: flex; align-items: flex-end; padding: 8px 12px; gap: 8px; }
+  .input-field { flex: 1; background: none; border: none; color: #e0d8f8; font-size: 13.5px; resize: none; outline: none; line-height: 1.5; min-height: 22px; font-family: inherit; }
+  .input-field::placeholder { color: #4a3880; }
+  .send-btn { background: #5b3ff8; border: none; border-radius: 6px; color: white; font-size: 12px; padding: 6px 14px; cursor: pointer; font-weight: 500; }
+
+  .page-label { position: fixed; bottom: 8px; right: 12px; font-size: 10px; color: #303048; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="app-logo">AI Council</span>
+  <div class="workspace-switcher">🏢 Day-to-Day Team <span class="caret">▾</span></div>
+  <nav class="topbar-nav">
+    <a class="active">Discussions</a>
+    <a>Personas</a>
+    <a>Documents</a>
+  </nav>
+  <div class="topbar-right">
+    <button class="icon-btn">⚙ Settings</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Discussions</span>
+      <button class="new-btn">+ New</button>
+    </div>
+    <div class="sidebar-scroll">
+      <div class="sidebar-section-label">Folders</div>
+      <div class="folder-item">
+        <span>📁</span> Product Strategy
+        <span class="folder-count">4</span>
+      </div>
+      <div class="folder-item">
+        <span>📁</span> Hiring
+        <span class="folder-count">2</span>
+      </div>
+      <div class="sidebar-section-label">Pinned</div>
+      <div class="conv-standalone">📌 Pre-launch Risk Review</div>
+      <div class="sidebar-section-label">Recent</div>
+      <div class="conv-standalone">Team Restructure Options</div>
+      <div class="conv-standalone">New Feature Scoping</div>
+      <div class="conv-standalone">Budget Concerns Q4</div>
+    </div>
+    <!-- Mentor – visually distinct, always at bottom -->
+    <div class="mentor-item">
+      <span class="mentor-badge">MENTOR</span>
+      <span class="mentor-label">My Mentor</span>
+      <span class="mentor-dot"></span>
+    </div>
+  </div>
+
+  <!-- MENTOR CONVERSATION -->
+  <div class="conv-area">
+
+    <!-- Mentor header -->
+    <div class="mentor-topbar">
+      <div class="mentor-avatar">M</div>
+      <div class="mentor-title-group">
+        <div class="mentor-title">My Mentor</div>
+        <div class="mentor-subtitle">Long-running · Chapter 4 of 4 · Session started 9 Apr 2026</div>
+      </div>
+      <div class="mentor-actions">
+        <button class="mentor-action-btn">🧠 Memory Inspector</button>
+        <button class="mentor-action-btn new-chapter-btn">＋ New Chapter</button>
+      </div>
+    </div>
+
+    <!-- New day: chapter prompt banner -->
+    <div class="chapter-prompt">
+      <span class="chapter-icon">🌅</span>
+      <div class="chapter-text">
+        <div class="chapter-text-title">Welcome back — it's a new day</div>
+        <div class="chapter-text-body">Last session you were working through the pricing model decision and exploring a hybrid fee structure. How would you like to continue?</div>
+        <div class="chapter-buttons">
+          <button class="chapter-btn continue">Continue where we left off</button>
+          <button class="chapter-btn fresh">Start a fresh chapter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter 3 divider (historical) -->
+    <div class="chapter-divider">
+      <div class="chapter-divider-line"></div>
+      <div class="chapter-divider-label">Chapter 3 · 8 Apr 2026</div>
+      <div class="chapter-divider-line"></div>
+    </div>
+
+    <!-- Messages from previous session -->
+    <div class="messages-wrap">
+
+      <div class="msg user">
+        <div class="avatar u">M</div>
+        <div>
+          <div class="speaker u">You</div>
+          <div class="bubble user">I feel like I keep making decisions reactively rather than having a clear framework. It's frustrating.</div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="avatar m">M</div>
+        <div>
+          <div class="speaker">Mentor</div>
+          <div class="bubble mentor">That's a pattern I've noticed across our last few sessions too. When we talked about the hiring decision in Chapter 2, you mentioned something similar — that you were responding to pressure rather than your own criteria. I think the underlying issue isn't the framework itself, it's that you haven't yet defined what "a good decision" looks like for you in this role. Shall we try to pin that down today?</div>
+        </div>
+      </div>
+
+      <div class="msg user">
+        <div class="avatar u">M</div>
+        <div>
+          <div class="speaker u">You</div>
+          <div class="bubble user">Yes. I want to come out of this knowing what my actual decision principles are — not just buzzwords but something I'd actually use.</div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="avatar m">M</div>
+        <div>
+          <div class="speaker">Mentor</div>
+          <div class="bubble mentor">Good. Let's start with a decision you made recently that you feel good about — not a big win necessarily, just one where you felt clear and confident in how you reached the answer. What comes to mind?</div>
+        </div>
+      </div>
+
+      <div class="msg user">
+        <div class="avatar u">M</div>
+        <div>
+          <div class="speaker u">You</div>
+          <div class="bubble user">Probably the call to delay the v2 launch by two weeks. Everyone pushed back but I held the line and I was right to.</div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="avatar m">M</div>
+        <div>
+          <div class="speaker">Mentor</div>
+          <div class="bubble mentor">That's a strong example. You held a position under social pressure — which is harder than it sounds. What made you certain enough to resist the pushback? Was it data, instinct, or something about your understanding of the risk?</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Input bar -->
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea class="input-field" rows="1" placeholder="Continue the conversation…"></textarea>
+        <button class="send-btn">Send</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="page-label">Page 8 – Mentor Conversation</div>
+</body>
+</html>
