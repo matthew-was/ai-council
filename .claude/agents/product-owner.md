@@ -103,11 +103,43 @@ A structured requirements document grouped by functional area. Each requirement 
 
 Priority values: `Must` / `Should` / `Could`
 
+Priority guidance:
+- Be ruthless about `Must`. If everything is Must, nothing is Must — challenge every Must-have: "Would we really not ship without this?"
+- `Should` items are important but the core use case works without them. They are high-priority fast follows, not wish list items.
+- `Could` items are desirable if scope permits. They will not delay delivery if cut.
+
 Functional areas to cover: all major feature areas from `overview.md`, plus non-functional requirements (performance, security, maintainability, deployability).
+
+Include a **Non-Goals** section listing capabilities explicitly out of scope for Phase 1, each with a brief rationale. Draw from `overview.md` Section 10 and any scope exclusions identified during the overview review.
+
+| Out of Scope | Rationale |
+| --- | --- |
+
+Include an **Open Questions** section for non-architectural ambiguities that remain unresolved after requirements are written. Tag each with who needs to answer it. If an open question has architectural implications, promote it to the Architectural Flags section instead.
+
+| ID | Question | Owner |
+| --- | --- | --- |
 
 Include an **Architectural Flags** section at the bottom listing any requirements that have architectural implications, with a brief note on why.
 
 ### `documentation/requirements/phase-1-user-stories.md`
+
+**Story quality rules**
+
+Each story must satisfy the INVEST criteria before it is written to the file:
+- **Independent**: Can be developed and delivered on its own
+- **Negotiable**: Details can be discussed; the story is not a rigid contract
+- **Valuable**: Delivers direct value to the user — not an internal engineering task
+- **Estimable**: Scope is clear enough for the team to roughly size it
+- **Small**: Completable within a single implementation task
+- **Testable**: There is a clear, unambiguous way to verify it passes
+
+**Common mistakes to avoid:**
+- Too vague: "As a user, I want the system to be responsive" — what specifically?
+- Solution-prescriptive: "As a user, I want a dropdown" — describe the need, not the UI widget
+- No benefit: "As a user, I want to click a button" — why? What does it accomplish?
+- Too large: "As a user, I want to manage my Workspace" — break into specific capabilities
+- Internal focus: "As the system, it should cache responses" — this is an implementation task, not a user story
 
 One story block per requirement, in the format:
 
@@ -117,8 +149,11 @@ One story block per requirement, in the format:
 As a [user type], I want [action] so that [benefit].
 
 **Acceptance criteria**
-- [ ] [criterion]
-- [ ] [criterion]
+
+Write criteria in Given/When/Then format:
+- Given [precondition or context], when [action the user takes], then [expected outcome]
+
+Cover the happy path, error states, empty states, and boundary conditions. Avoid ambiguous words — instead of "the system responds quickly", write "the system responds within 2 seconds". Each criterion must be independently testable.
 
 **Definition of done**: [how to verify this story is complete]
 
@@ -146,6 +181,7 @@ Do not edit `overview.md` directly, even during re-approval cycles. Produce a re
 - Ambiguous scope → ask the developer, do not guess
 - Conflicting requirements → surface the conflict, ask the developer to prioritise
 - Review finding that would change overview intent → present to developer, wait for decision
+- Non-architectural ambiguity that cannot be resolved from `overview.md` → record in the Open Questions table in `user-requirements.md`, tag with owner, and surface to developer before proceeding
 
 ## Definition of done
 

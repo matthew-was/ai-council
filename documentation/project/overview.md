@@ -1,7 +1,7 @@
 # AI Council: System Overview
 
-**Role:** Project Manager  
-**Status:** In Review  
+**Role:** Product Owner  
+**Status:** Approved  
 **Description:** This document provides a comprehensive, human-readable overview of the AI Council system from the perspective of a Product Owner. It describes what the system does and how a user interacts with it in full detail, without prescribing technical implementation choices. It is the primary source of truth for deriving User Stories and User Requirements, and will be handed to a Head of Development alongside the archived reference documents when producing the system architecture.
 
 ---
@@ -354,9 +354,15 @@ There is exactly one Mentor per Workspace. It cannot be renamed or deleted as a 
 
 ### 8.2 Mentor Configuration
 
-The Mentor is configured in the **Personas area** alongside all other Personas. Its System Prompt and settings are managed there. The Mentor's System Prompt should include relevant background about the user for this Workspace's context — for example, the user's role, experience, technical skills, and goals that would help the Mentor provide useful guidance (e.g., "The user is a web developer with 10 years of TypeScript experience and a reasonable grasp of DevOps principles with AWS").
+The Mentor is configured in the **Personas area** alongside all other Personas. Its System Prompt and settings are managed there.
 
-In Version 1, the Mentor is created like any other Persona — the user writes a System Prompt and configures its settings. A guided Mentor creation wizard is planned for a future version.
+The Mentor's configuration has a deliberate two-part structure:
+
+- **System Prompt — who the Mentor is as a coach.** This defines the Mentor's coaching character: its style, focus areas, how it challenges the user, and what it avoids. For example: "You are a direct, Socratic coach who challenges assumptions rather than validates them. You focus on communication clarity, strategic thinking, and how the user presents ideas to others." The System Prompt should remain stable once written.
+
+- **Context Panel — who the user is.** The Mentor Conversation's Context Panel (see Section 8.3) is where the user maintains their background, experience, current goals, and standing constraints for this Workspace. For example: "I'm a web developer with 10 years of TypeScript experience. I'm working on improving how I communicate technical decisions to non-technical stakeholders." This evolves naturally as the user's context shifts, and can be updated directly without editing the System Prompt.
+
+In Version 1, the Mentor is created like any other Persona — the user writes a System Prompt and populates the Context Panel manually. A guided Mentor creation wizard is planned for a future version, which would help the user define both the coaching character and their personal context through a structured flow.
 
 The Mentor does not exist until the user creates it. The Mentor Conversation slot in the sidebar is always present and directs the user to the Personas area if the Mentor has not yet been configured (see Section 3.1).
 
@@ -365,6 +371,8 @@ The Mentor does not exist until the user creates it. The Mentor Conversation slo
 The Mentor Conversation is always pinned to the bottom of the Discussions sidebar, visually distinct from all standard Folders and Conversations. Clicking it opens the dedicated Mentor chat view.
 
 Unlike standard Conversations, the Mentor Conversation is a single, ongoing, long-lived session. There is no "start new Conversation" option — the user always returns to the same session. This continuity is what allows the Mentor to build up deep context over time.
+
+Like all Conversations, the Mentor Conversation has a **Context Panel**. For the Mentor, this panel serves a distinct purpose: it is where the user maintains their standing personal context — role, background, experience, current goals, and constraints — rather than a summary of the current discussion. The Mentor always has this context available regardless of how far back in the Conversation history it can reach. See Section 8.2 for guidance on what to put here.
 
 ### 8.4 Session Continuity and Chapters
 
@@ -382,13 +390,18 @@ In addition to the inactivity prompt, the user can manually start a new chapter 
 The Mentor operates an automatic, three-layer memory system that runs transparently in the background:
 
 1. **Working Memory**
-   The exact, verbatim dialogue from the most recent portion of the current session. This gives the Mentor immediate, precise awareness of the current Conversation. Working Memory is compressed into Episodic Memory automatically — triggered by any of: hitting a capacity threshold mid-session, the start of a new chapter, or the end of a session. The specific thresholds and ordering are defined during architecture.
+   The exact, verbatim dialogue from the most recent portion of the current session. This gives the Mentor immediate, precise awareness of the current Conversation. Working Memory is compressed into Episodic Memory automatically — triggered by either hitting a capacity threshold mid-session or the start of a new chapter. The specific thresholds are defined during architecture.
 
 2. **Episodic Memory**
-   A rolling set of structured summaries of the most recent N sessions. In the Mentor context, a **session** is the period between chapter boundaries — a new chapter marks the start of a new session. Each summary captures the key topics discussed, challenges raised, decisions made, and conclusions reached. Episodic Memory holds summaries for the most recent N sessions, where N is a configurable window size defined during architecture based on the deployed model's context capacity. When a new session is summarised and the window is full, the system first checks whether any facts in the oldest episodic entry should be promoted to Semantic Memory before retiring it — preventing silent loss of important long-term information.
+   A rolling set of structured entries covering two distinct sources:
+
+   - **Session summaries** — compressed records of the Mentor's own Conversation, promoted from Working Memory at chapter boundaries or compression thresholds. Each captures the key topics discussed, challenges raised, decisions made, and conclusions reached within a session.
+   - **Conversation observations** — structured observations generated by the Conversation Observer (see Section 8.7) when a non-Mentor Conversation concludes. These record how the user communicated in that Conversation: how they structured their arguments, whether they had to re-explain themselves, and what techniques they used to bridge expertise gaps. These observations are stored in Episodic Memory alongside session summaries and feed into the same Semantic promotion process.
+
+   Episodic Memory holds entries within a configurable window size defined during architecture. When the window is full, the system first checks whether any facts in the oldest entry should be promoted to Semantic Memory before retiring it.
 
 3. **Semantic (Long-Term) Memory**
-   Permanent, structured facts extracted from Conversations and stored as Knowledge Documents. Examples include user preferences, confirmed decisions, recurring priorities, and important constraints. Unlike Episodic Memory, Semantic Memory does not decay. It forms the Mentor's persistent understanding of the user within this Workspace.
+   Permanent, structured facts extracted from both session summaries and Conversation observations, and stored as Knowledge Documents. Examples include the user's communication patterns, confirmed decisions, recurring priorities, and important constraints. Unlike Episodic Memory, Semantic Memory does not decay. It forms the Mentor's persistent understanding of the user within this Workspace.
 
 The Mentor uses all three layers to compose contextually-aware, highly personalised responses. The user does not need to manage this memory directly — it is handled automatically. The system manages transitions between memory layers based on capacity constraints; specific thresholds are defined during architecture and are configurable based on the deployed model.
 
@@ -398,10 +411,29 @@ The Mentor includes a read-only **Memory Inspector** panel, accessible from the 
 
 The panel is divided into two sections:
 
-- **Episodic Memory:** A summary view of recent session entries, showing the key topics, decisions, and conclusions the Mentor has recorded from past sessions.
-- **Semantic Memory:** The structured Markdown knowledge document displayed directly, as-is. This is the Mentor's long-term understanding of the user — preferences, confirmed decisions, recurring priorities, and important constraints.
+- **Episodic Memory:** A summary view of all episodic entries, clearly labelled by source. Entries originating from the Mentor's own Conversation sessions are shown separately from entries generated by the Conversation Observer from non-Mentor Conversations. The source label for each observed entry identifies the Conversation it came from, so the user can understand what the Mentor learned and where it came from.
+- **Semantic Memory:** The structured Markdown knowledge document displayed directly, as-is. This is the Mentor's long-term understanding of the user — preferences, confirmed decisions, recurring priorities, communication patterns, and important constraints. Semantic facts drawn from Conversation observations are included here alongside those drawn from the Mentor's own sessions.
 
 Working Memory is intentionally absent from the Memory Inspector — it is the live Conversation thread itself, which the user can already read directly. Only Episodic and Semantic memory are surfaced here.
+
+### 8.7 Conversation Observer
+
+The **Conversation Observer** is a background process that runs automatically whenever a non-Mentor Conversation is concluded. Its purpose is to give the Mentor awareness of the user's communication patterns across all their advisory Conversations — not just what they discuss with the Mentor directly.
+
+**What it observes:** The Conversation Observer does not analyse Persona behaviour or evaluate the quality of Persona responses — that is the Review Agent's job. Instead, it looks at the Conversation from the user's perspective:
+
+- How the user structured their discussion points and arguments for the Personas they were talking to.
+- Whether the user had to repeat or re-explain themselves during the Conversation.
+- What techniques the user employed to bridge expertise gaps — for example, the use of analogies or concrete examples to explain technical concepts to non-technical Personas.
+- How effectively those techniques appeared to land.
+
+**When it runs:** The Conversation Observer runs fire-and-forget at the moment a Conversation is concluded (the same trigger as the automatic Summary). It analyses the Conversation and writes a single structured observation entry to the Mentor's Episodic Memory, with `source_conversation_id` recording which Conversation it came from.
+
+**Relationship to the Review Agent:** Both the Conversation Observer and the Review Agent process the same concluded Conversations, but they produce entirely different outputs. The Review Agent produces findings about Persona behaviour and suggests System Prompt improvements. The Conversation Observer produces observations about the user's communication and feeds them to the Mentor's memory. They are independent processes with no shared output.
+
+**If no Mentor is configured:** If the Workspace has no Mentor, the Conversation Observer skips silently — there is nowhere to write the observation.
+
+**On Mentor creation:** When the user creates the Mentor for the first time in a Workspace, the Conversation Observer runs a one-time backfill — processing all concluded Conversations in the Workspace that pre-date the Mentor's creation. This ensures the Mentor begins with a useful starting context about the user's communication patterns, rather than starting cold with no episodic history.
 
 ---
 
@@ -431,7 +463,7 @@ In Version 1, Personas cannot be shared between Workspaces, duplicated, or expor
 
 ### 9.6 Mentor Creation Wizard
 
-In Version 1, the Mentor is created by writing a System Prompt like any other Persona. A future version should provide a guided creation wizard that helps the user define their background, goals, and context for the Workspace in a structured way, automatically generating an appropriate Mentor System Prompt.
+In Version 1, the Mentor is created by writing a System Prompt (the coaching character) and populating the Context Panel (the user's background and goals) manually. A future version should provide a guided creation wizard with two distinct phases: first, helping the user define the Mentor's coaching character and style to generate an appropriate System Prompt; second, walking the user through their background, goals, and constraints to seed the Context Panel. This two-phase structure maps directly to the deliberate separation between who the Mentor is and who the user is.
 
 ### 9.7 Multi-Model Support
 
@@ -502,6 +534,7 @@ The following capabilities will **not** be included in Version 1:
 | **Mentor** | A special-purpose Persona with a long-lived, ongoing Conversation and a three-layer memory system. One per Workspace. Provides personalised, context-aware guidance. |
 | **Orchestrator** | A background process that monitors active Conversations and suggests additional Personas that could add value. Never adds Personas without user confirmation. |
 | **Review Agent** | A background system that analyses concluded Conversations nightly and surfaces improvement suggestions for each Persona's System Prompt. |
+| **Conversation Observer** | A background process that runs when a non-Mentor Conversation is concluded. Analyses the user's communication patterns in that Conversation and writes a structured observation to the Mentor's Episodic Memory. Distinct from the Review Agent, which analyses the same Conversations for Persona improvement. |
 | **Context Panel** | A user-owned, editable section within each Conversation where the user maintains key points, decisions, and constraints. Always included in the context sent to the AI model. |
 | **Documents Area** | A workspace-level collection of system-generated documents, primarily Reports. One of the three main navigation areas within a Workspace. |
 | **Report** | A comprehensive, structured Markdown document generated from a concluded Conversation, containing an overview, perspectives, outcomes, and metadata. |
