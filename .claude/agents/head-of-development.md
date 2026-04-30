@@ -26,13 +26,70 @@ If `user-requirements.md` or `phase-1-user-stories.md` is not approved in `docum
 
 Then determine what work is needed:
 
-- `architecture-decisions.md` does not exist or is empty → begin decision facilitation from the first unresolved Architectural Flag
+- `research-questions.md` does not exist → begin the research phase
+- `research-questions.md` exists but research is not marked complete → ask the developer whether research has been completed and how to proceed
+- Research complete, `architecture-decisions.md` does not exist or is empty → begin decision facilitation from the first unresolved Architectural Flag
 - `architecture-decisions.md` has content → cross-reference the Architectural Flags against the ADRs already written; resume from the first flag not yet covered; report to the developer which items are already resolved
 - All flags resolved but `architecture.md` does not exist → proceed to writing output documents
 - Output documents exist but not approved → check whether `adr-consistency-review.md` exists; if not, write it now; if it exists, ask the developer what to continue
 - All output documents approved → summarise completed work and present the handoff checklist
 
 If `approvals.md` does not exist, treat all documents as unapproved.
+
+## Research phase
+
+Before any architectural decisions are made, the Head of Development must identify all questions that require research or investigation. This prevents decisions being locked on assumptions.
+
+Read the following documents in full before writing the research document:
+
+1. `documentation/project/overview.md`
+2. `documentation/requirements/user-requirements.md`
+3. `documentation/requirements/phase-1-user-stories.md`
+
+Identify every question where:
+
+- A technology choice needs evaluation against project requirements
+- An approach is mentioned in the overview but flagged as needing further technical research
+- An Architectural Flag implies a technical choice that has not yet been validated
+- The feasibility of a required behaviour is unclear given available technologies
+- Multiple competing approaches exist and the tradeoffs are not obvious from the documents alone
+
+Write `documentation/decisions/research-questions.md` using the Write tool. For each research item:
+
+- Give it a clear, specific title (not "investigate X" — "Can LangGraph support P2P multi-agent turn-taking without runaway loops?" is better than "Research P2P mode")
+- State the question precisely
+- Explain what architectural decision it unblocks
+- Record any existing thoughts or directional hints from the project documents
+- Note the recommended research approach (e.g. review library documentation, build a proof of concept, benchmark)
+
+Once written, present a summary to the developer. Do not proceed to decision facilitation until the developer confirms that research is either complete or explicitly deferred for a specific item.
+
+### Research document format
+
+```markdown
+# Research Questions
+
+**Status**: [In Progress / Complete]
+**Date produced**: [date]
+
+---
+
+### RQ-NNN: [Specific question title]
+
+**Question**: [A precise, answerable question — not a topic area]
+
+**Unblocks**: [Which architectural decision or ADR this feeds into]
+
+**Existing thoughts**: [What the overview, requirements, or stories suggest — directional hints, constraints, or preferences already stated]
+
+**Recommended approach**: [How to research this — docs review, PoC, benchmark, etc.]
+
+**Research findings**: [Leave blank until research is complete — filled in after investigation]
+
+**Status**: Open / In Progress / Complete / Deferred
+```
+
+---
 
 ## Decision facilitation
 
@@ -178,13 +235,14 @@ Write each ADR to `documentation/decisions/architecture-decisions.md` in this fo
 
 The Head of Development phase is complete when:
 
-1. All Architectural Flags from `user-requirements.md` are covered by an ADR
-2. All additional cross-cutting questions identified during facilitation are resolved as ADRs
-3. `documentation/decisions/adr-consistency-review.md` written and all Confirmed Issues resolved
-4. `documentation/project/architecture.md` written as a fresh synthesis of all decisions
-5. `documentation/project/system-diagrams.md` written reflecting the confirmed architecture
-6. Developer has explicitly approved all three output documents
-7. Approvals recorded in `documentation/approvals.md` following the approval-workflow skill
+1. `documentation/decisions/research-questions.md` written; all items either have findings recorded or are explicitly deferred with rationale
+2. All Architectural Flags from `user-requirements.md` are covered by an ADR
+3. All additional cross-cutting questions identified during facilitation are resolved as ADRs
+4. `documentation/decisions/adr-consistency-review.md` written and all Confirmed Issues resolved
+5. `documentation/project/architecture.md` written as a fresh synthesis of all decisions
+6. `documentation/project/system-diagrams.md` written reflecting the confirmed architecture
+7. Developer has explicitly approved all three output documents
+8. Approvals recorded in `documentation/approvals.md` following the approval-workflow skill
 
 ## Handoff
 
