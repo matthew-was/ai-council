@@ -14,7 +14,7 @@ None. All plan sections decompose cleanly into verifiable tasks.
 
 ## Critical path
 
-B-001 → B-023 → B-002 → B-003 → B-005 → B-006 → B-007 → B-009 → B-010 → B-011 → B-012 → B-013 → B-018 → B-021 → B-022
+B-001 → B-023 → B-002 → B-003 → B-004 → B-024 → B-005 → B-006 → B-007 → B-009 → B-010 → B-011 → B-012 → B-013 → B-018 → B-021 → B-022
 
 ---
 
@@ -161,6 +161,46 @@ All test files must start empty (no tests yet — tests are written in later tas
 **Complexity**: S
 
 **Acceptance condition**: `pytest --collect-only -m unit` exits 0 (no tests found, but no import errors). `pytest --collect-only -m integration` exits 0. `from tests.fakes.fake_model_gateway import FakeModelGateway` imports without error. The `conftest.py` fixtures are importable from a test file without error.
+
+**Condition type**: manual
+
+**Status**: not_started
+
+---
+
+### Task B-024: GitHub Actions — backend CI workflow
+
+**Description**: Create the GitHub Actions workflow that runs the backend test suite, starts the application, and publishes the OpenAPI spec as a workflow artifact for the frontend to consume.
+
+Produce:
+- `.github/workflows/backend-ci.yml` — workflow triggered on `push` and `pull_request` for paths matching `apps/backend/**` and `.github/workflows/backend-ci.yml`. Two jobs:
+
+  - **test** (runs on `ubuntu-latest`):
+    - PostgreSQL 16 service container (`postgres:16-alpine`) with `POSTGRES_DB=ai_council_test`, `POSTGRES_USER=ai_council`, `POSTGRES_PASSWORD=ai_council`; health check via `pg_isready`; port 5432 mapped to host
+    - `actions/checkout@v4`
+    - `actions/setup-python@v5` with `python-version: '3.12'`; pip cache keyed on `apps/backend/pyproject.toml`
+    - Install: `pip install -e ".[dev]"` from `apps/backend/`
+    - Migrate: `alembic upgrade head` with `DATABASE_URL=postgresql+asyncpg://ai_council:ai_council@localhost:5432/ai_council_test`
+    - Unit tests: `pytest -m unit` (no database env required)
+    - Integration tests: `pytest -m integration` with `DATABASE_URL` set
+    - The workflow must not run e2e tests (`@pytest.mark.e2e`) — excluded by the `-m` flag
+
+  - **publish-openapi** (runs on `ubuntu-latest`, `needs: test`):
+    - Same Postgres service container and Python setup as the `test` job
+    - Same install and migration steps
+    - Start uvicorn in the background: `uvicorn app.main:app --host 0.0.0.0 --port 8000 &`; wait for readiness using `curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:8000/docs`
+    - Fetch the spec: `curl http://localhost:8000/openapi.json -o openapi.json`
+    - Upload `openapi.json` as a workflow artifact named `openapi-spec` (retention: 90 days) using `actions/upload-artifact@v4`
+    - Environment variables for uvicorn: `DATABASE_URL` (pointing to the CI Postgres), `MODEL_PROVIDER=openai`, `MODEL_API_KEY=ci-placeholder`, `MODEL=gpt-4o` — the model gateway is configured but never called; the app only needs to start and serve routes
+    - `config.override.json` is not used in CI; all required config is passed as environment variables
+
+Add a `backend-ci` status badge to `README.md`.
+
+**Depends on**: B-004
+
+**Complexity**: S
+
+**Acceptance condition**: A push triggers the workflow. The `test` job passes. The `publish-openapi` job starts the app, fetches `/openapi.json`, and the artifact appears in the workflow run's artifact list on the Actions tab. `GET /openapi.json` in the CI log returns a JSON body containing an `"openapi"` key. Confirmed by viewing the Actions tab on the repository.
 
 **Condition type**: manual
 

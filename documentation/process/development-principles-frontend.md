@@ -2,7 +2,7 @@
 
 Frontend-specific principles for `apps/frontend/`. Read this file alongside `development-principles.md` for every frontend task.
 
-This file is populated as principles are identified and approved through the Principles Guardian workflow. The structure below shows the expected categories based on the confirmed tech stack. Content is added after the architecture phase confirms the frontend technology choices.
+This file is populated as principles are identified and approved through the Principles Guardian workflow. The confirmed tech stack is React 19, Vite, TanStack Router, SWR, Base UI + Tailwind, openapi-typescript, Vitest, MSW, and vitest-axe. Principles are added here as patterns emerge from completed tasks.
 
 ---
 
@@ -16,7 +16,7 @@ Do not restate universal principles from `development-principles.md` — referen
 
 ## Framework and Rendering
 
-*(To be populated after architecture phase confirms frontend framework)*
+*(To be populated)*
 
 ---
 
@@ -40,7 +40,7 @@ Do not restate universal principles from `development-principles.md` — referen
 
 ## Frontend Testing Strategy
 
-*(To be populated after architecture phase confirms testing tools)*
+*(To be populated)*
 
 ---
 

@@ -29,7 +29,7 @@ Agents have no memory between sessions. Each conversation starts fresh. To re-es
 | --- | --- |
 | Product Owner | `documentation/project/overview.md` |
 | Head of Development | `documentation/requirements/user-requirements.md`, `documentation/decisions/architecture-decisions.md`, `documentation/process/development-principles.md` |
-| Senior Developer (Backend) | `documentation/requirements/user-requirements.md`, `documentation/decisions/architecture-decisions.md`, `documentation/project/architecture.md`, Senior Developer (Frontend) API requirements document |
+| Senior Developer (Backend) | `documentation/requirements/user-requirements.md`, `documentation/decisions/architecture-decisions.md`, `documentation/project/architecture.md`, `documentation/tasks/api-contract.md` |
 | Senior Developer (Frontend) | `documentation/requirements/user-requirements.md`, `documentation/decisions/architecture-decisions.md`, `documentation/project/architecture.md` |
 | Platform Engineer | `documentation/project/architecture.md`, approved task lists |
 | Project Manager | Senior Developer implementation plan |
@@ -74,7 +74,7 @@ The agent structure exists to:
 **Inputs**: `documentation/project/overview.md`
 
 **Outputs**:
-- `documentation/requirements/overview-review.md` — issues surfaced before requirements are written
+- `documentation/requirements/overview-review.md` — issues surfaced before requirements are written (may be discussed in-session rather than written to disk if issues are minor)
 - `documentation/requirements/user-requirements.md` — structured requirements with priority, user type, and rationale
 - `documentation/requirements/phase-1-user-stories.md` — user stories with acceptance criteria and definition of done
 
@@ -146,16 +146,15 @@ The agent structure exists to:
 
 **File**: `.claude/agents/platform-engineer.md`
 
-**Responsibility**: Own the platform layer — monorepo root structure, Docker Compose local environment, GitHub Actions CI/CD, and dependency currency. Does not write application code.
+**Responsibility**: Own the platform layer — CI/CD pipeline maintenance, dependency currency, and infrastructure integrity as services grow. Does not write application code. Initial Docker Compose setup and GitHub Actions workflows are created as implementation tasks (B-023, B-024, F-029); the Platform Engineer is invoked for ongoing maintenance and reviews once those foundations are in place.
 
-**Four phases (each independently invocable)**:
+**Three invocation modes (each independently invocable)**:
 
-1. **Monorepo root scaffolding** — workspace root, shared packages, base config files. Must complete before any Implementer session begins.
-2. **Docker Compose** — local development environment matching the confirmed architecture.
-3. **GitHub Actions CI/CD** — lint, type-check, and test jobs on every push; PR gate to `main`.
-4. **Dependency update review** — on-demand; reads all dependency manifests, fetches current versions, assesses security advisories, writes recommendation report.
+1. **CI/CD review and repair** — on-demand; audits existing GitHub Actions workflows, identifies jobs that are failing or drifting from the current test suite shape, and proposes fixes. Invoked when CI is consistently failing or when new test tiers are added.
+2. **Dependency update review** — on-demand; reads all dependency manifests (`pyproject.toml`, `package.json`), fetches current versions, assesses security advisories, and writes a recommendation report with proposed version bumps. Does not apply changes — produces a report for developer decision.
+3. **Infrastructure alignment check** — invoked after significant implementation milestones; verifies that `docker-compose.yml`, CI workflows, and local development setup remain consistent with the current architecture and task list.
 
-**When to invoke**: Scaffolding phase immediately after task lists are approved, before Implementer Task 1. Other phases can overlap with Implementer work.
+**When to invoke**: After B-022 and F-028 are complete (full test suites exist and Docker builds are working). Also on-demand whenever CI is broken, dependencies need reviewing, or infrastructure has drifted.
 
 ---
 
@@ -236,9 +235,9 @@ Senior Developer (Frontend) produces frontend plan against approved contract
   ↓ [DoD: senior-developer-frontend-plan.md approved]
 Project Manager decomposes both plans into task lists
   ↓ [DoD: frontend-tasks.md and backend-tasks.md approved]
-Platform Engineer — monorepo root scaffolding
-  ↓ [DoD: workspace root, shared packages, base config exist; install passes]
 ```
+
+Note: Docker Compose setup (B-023), GitHub Actions CI (B-024, F-029), and monorepo scaffolding are embedded in the implementation task lists rather than handled by a separate pre-implementation Platform Engineer phase.
 
 ### Per-Task Implementation Loop
 

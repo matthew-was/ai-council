@@ -4,11 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-**Phase: Architectural Definition & Planning.** The project is in a clean-slate reset. All prior prototype code and documentation is archived in [archive/](archive/). No `apps/` directory exists yet — the current focus is producing the documentation and architecture decisions that will precede implementation.
+**Phase: Implementation.** The planning phase is complete. All architecture, API contract, and implementation plan documents are approved. The `apps/` directory does not yet exist — implementation begins at task B-001 (backend scaffolding).
 
-The definitive product description is [documentation/project/overview.md](documentation/project/overview.md). Read it before working on anything requirements- or architecture-related.
+Prior prototype code and documentation is archived in [archive/](archive/).
 
-The tech stack is **not yet decided** — it will be confirmed during the architecture phase. Do not assume a stack from prior files.
+The definitive product description is [documentation/project/overview.md](documentation/project/overview.md). The API source of truth is [documentation/tasks/api-contract.md](documentation/tasks/api-contract.md).
+
+### Confirmed tech stack
+
+**Backend**: FastAPI, SQLAlchemy 2.x async, asyncpg, LangGraph (orchestrator), APScheduler (background jobs), Alembic (migrations), Dynaconf (config), Pydantic v2, structlog, PostgreSQL.
+
+**Frontend**: React 19, Vite, TanStack Router, SWR, Base UI + Tailwind CSS, `@microsoft/fetch-event-source`, openapi-typescript, Vitest, MSW, React Testing Library, vitest-axe.
 
 ## Documentation Standards
 
@@ -63,6 +69,7 @@ These terms have precise meanings — use them consistently:
 - **Mentor**: One special Persona per Workspace with a persistent, never-ending Conversation and a three-layer memory system (Working → Episodic → Semantic).
 - **Orchestrator**: Background process that suggests (never adds) Personas mid-conversation.
 - **Review Agent**: Nightly background job that analyses concluded Conversations and surfaces System Prompt improvement suggestions per Persona.
+- **Conversation Observer**: Fire-and-forget job that runs at conversation end, analysing user communication patterns from non-Mentor conversations and writing `source_type='observed'` entries to Mentor episodic memory. Silent no-op if no Mentor exists; backfills on Mentor creation.
 - **Context Panel**: User-owned editable field in each Conversation that is always included in LLM context, surviving message truncation.
 
 ## Key Architectural Constraints
