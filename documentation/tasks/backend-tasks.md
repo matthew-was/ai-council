@@ -43,7 +43,16 @@ No application logic is written in this task. All files may be stubs (empty or w
 
 **Condition type**: manual
 
-**Status**: not_started
+**Status**: done
+
+**Verification** (2026-05-09):
+- Automated checks: not present — condition type is manual only
+- Manual checks: Developer must run the following three commands from the `apps/backend/` directory with all dependencies installed (`pip install -e ".[dev]"`):
+  1. `cd apps/backend && python -m pytest --collect-only` — expected: exits without a collection-error code. Exit code 5 ("no tests collected") is acceptable and expected; only exit codes 1–4 indicate a failure. No import errors should appear in the output.
+  2. `python -c "from app.config import BackendConfig"` — expected: exits silently with code 0. No output is produced on success.
+  3. `python -c "from app.constants import new_uuid; print(new_uuid())"` — expected: prints a single UUID v7 string in the format `xxxxxxxx-xxxx-7xxx-xxxx-xxxxxxxxxxxx` (version digit is 7).
+- User need: satisfied — `BackendConfig` provides the operator-configurable endpoint/credentials layer required by US-AI1; `DEFAULT_USER_ID` and UUID v7 `new_uuid()` provide the data model foundations required by US-DM1. Package structure correctly scopes all future backend implementation.
+- Outcome: done — developer confirmed all three manual checks pass (2026-05-09).
 
 ---
 

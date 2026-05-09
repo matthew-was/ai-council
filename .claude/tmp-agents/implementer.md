@@ -19,21 +19,21 @@ The caller specifies a **service** (frontend or backend) and a **task number**. 
 **Both services:**
 
 1. `documentation/approvals.md` — confirm the task list for this service is approved; do not implement against an unapproved task list
-2. `documentation/tasks/integration-lead-contracts.md` — approved API contracts and TypeScript interface definitions
+2. `documentation/tasks/api-contract.md` — the approved API contract; the source of truth for all endpoint shapes
 
 **Frontend service — also read:**
 
 1. `documentation/tasks/frontend-tasks.md` — the approved task list; locate the specified task
 2. `documentation/tasks/senior-developer-frontend-plan.md` — the implementation plan; use it to understand the intent behind the task
 3. `documentation/process/development-principles.md` — universal principles (all services)
-4. `documentation/process/development-principles-frontend.md` — frontend-specific patterns; pay particular attention to the Frontend Framework Agnosticism, Frontend Testing Strategy, and Hono Custom Server sections
+4. `documentation/process/development-principles-frontend.md` — frontend-specific patterns
 
 **Backend service — also read:**
 
 1. `documentation/tasks/backend-tasks.md` — the approved task list; locate the specified task
-2. `documentation/tasks/integration-lead-backend-plan.md` — the implementation plan; use it to understand the intent behind the task
+2. `documentation/tasks/senior-developer-backend-plan.md` — the implementation plan; use it to understand the intent behind the task
 3. `documentation/process/development-principles.md` — universal principles (all services)
-4. `documentation/process/development-principles-backend.md` — backend-specific patterns; pay particular attention to the Dependency Composition Pattern, Service Pattern, and Repository Pattern sections
+4. `documentation/process/development-principles-backend.md` — backend-specific patterns; pay particular attention to the Dependency Composition Pattern and ORM scoping sections
 
 Then determine what to do:
 
@@ -45,11 +45,11 @@ If `approvals.md` does not exist, treat all documents as unapproved and do not p
 
 ## Service scope
 
-**Frontend** (`apps/frontend/`): Next.js pages, components, data fetching, client-side state, API calls to Express and (for C3 queries) directly to the Python service per ADR-045.
+**Frontend** (`apps/frontend/`): React 19 components, TanStack Router pages, SWR data fetching, SSE event handling via `@microsoft/fetch-event-source`, Base UI + Tailwind CSS.
 
-**Backend** (`apps/backend/`): Express route handlers, middleware, service layer, Knex migrations, VectorStore and GraphStore Phase 1 implementations.
+**Backend** (`apps/backend/`): FastAPI route handlers, middleware, SQLAlchemy ORM models, Alembic migrations, LangGraph orchestrator, APScheduler background jobs.
 
-Do not write code outside the scope of the specified service. Do not modify `services/processing/` (Python service) or `packages/shared/` unless the task explicitly requires a shared type addition — and then only add, never remove or rename existing shared types.
+Do not write code outside the scope of the specified service.
 
 ## Technology constraints
 
@@ -57,26 +57,25 @@ These are confirmed decisions — do not propose alternatives:
 
 **Frontend:**
 
-- Framework: Next.js with custom server (ADR-044); TypeScript strict mode
-- Configuration: nconf (see configuration-patterns skill)
-- Validation: Zod for all data boundary validation
-- Logging: Pino
-- Package manager: pnpm workspace
-- Testing: Vitest for unit tests; React Testing Library for component tests
-- Internal auth: shared-key header on all calls from Next.js to Express (ADR-044)
-- C3 query path: Next.js proxies queries directly to Python service — NOT through Express (ADR-045)
+- Framework: React 19, Vite, TanStack Router
+- Data fetching: SWR
+- SSE: `@microsoft/fetch-event-source`
+- Styling: Base UI + Tailwind CSS
+- Types: openapi-typescript (generated from backend OpenAPI spec)
+- Testing: Vitest, React Testing Library, MSW, vitest-axe
 
 **Backend:**
 
-- Framework: Express; TypeScript strict mode
-- Configuration: nconf (see configuration-patterns skill)
-- Validation: Zod for request validation at route boundaries
-- Logging: Pino
-- Database: Knex for query building and migrations; PostgreSQL + pgvector
-- Testing: Vitest for unit tests; integration tests against real database (see pipeline-testing-strategy skill)
-- Internal auth: shared-key header validation on all inbound requests (ADR-044)
-- Data access: Express is the sole database writer; all application components access data through Express API (ADR-031)
-- Dependency injection: handler functions with injected services (see dependency-composition-pattern skill)
+- Framework: FastAPI; Python 3.12
+- Config: Dynaconf + `BackendConfig(BaseSettings)` (see configuration-patterns skill)
+- ORM: SQLAlchemy 2.x async; asyncpg driver
+- Migrations: Alembic
+- AI orchestration: LangGraph with PostgresSaver checkpointer
+- Background jobs: APScheduler
+- SSE: sse-starlette
+- Result types: `Ok[T] | Err` (no custom exception hierarchy)
+- Logging: structlog
+- Testing: pytest + pytest-asyncio; fakes over mocks (see pipeline-testing-strategy skill)
 
 ## Per-task workflow
 
@@ -94,20 +93,15 @@ Do not implement multiple tasks in one session unless the developer explicitly a
 
 ## Code standards
 
-- Biome (ADR-046): all code must pass `biome check` with no errors before marking a task `code_complete`; do not disable Biome rules inline without a comment explaining why
-- TypeScript strict mode: no `any`, no non-null assertions without a comment explaining why
 - Every function that can fail must handle errors explicitly — no silent swallowing
-- Never discard a `ServiceResult` return value — always check `outcome` and handle the error case explicitly; ignoring a `ServiceResult` inside a transaction is especially dangerous as it allows the transaction to commit despite a logical failure
-- No secrets, credentials, or document content in logs — log identifiers and status only
-- All configuration values loaded via nconf at startup, validated with Zod — no hardcoded values (see configuration-patterns skill)
-- File uploads: validate MIME type, extension, and size before processing; reject invalid inputs with a specific error message
-- Input sanitisation: validate all user-supplied values at the service boundary; do not pass raw request fields to database queries or file system operations
-- Frontend schema derivation: when overriding a field from a shared schema via `.extend()`, check whether the source field transforms its value (`.trim()`, `.toLowerCase()`, coercions) and preserve those transformations in the override — a `.refine()` validates but does not transform, so the form will submit a value the server would silently mutate
-- Frontend form schemas: all Zod form validation schemas must be defined in `src/lib/schemas.ts` — never inside a hook or component, even as a local `const`. If the form layer needs a field to differ from the shared schema (e.g. an array field held as a comma-separated string), extend the existing schema in `schemas.ts` using `.extend()` following the `MetadataEditSchema` pattern, then import it into the hook
-- No direct database connections from frontend components — all data access via Express API
-- Server Component self-calls: when a Server Component fetches from the Hono server, construct the full URL from `config.server.host` and `config.server.port` — never hardcode `localhost` or any other hostname
-- All handler functions accept injected services — no direct instantiation inside handlers (see dependency-composition-pattern skill)
-- Backend code structure: follow the Dependency Composition, Service, and Repository patterns in `documentation/process/development-principles-backend.md` — route factories receive one service (not `AppDependencies`), services are factory functions returning closures, all SQL lives in `db/repositories/`, `db._knex` is never used outside repositories/test cleanup/transactions
+- Always return `Ok[T] | Err` from service functions — never raise custom exceptions for expected failure cases
+- Never discard a `ServiceResult` — always check `Ok`/`Err` and handle both branches explicitly
+- No secrets, credentials, or message content in logs — log identifiers and status only
+- All configuration values read from `BackendConfig` — no hardcoded values (see configuration-patterns skill)
+- Input validation at service boundaries: validate all user-supplied values before use; do not pass raw request fields to database queries
+- ORM scoping: all workspace-scoped queries must run with the `current_workspace_id` ContextVar set; never bypass the scoping event listener without an inline comment
+- Dependency injection: top-level service classes receive dependencies (ModelGateway, structlog.BoundLogger, db session) as constructor or function arguments — no direct instantiation inside handlers (see dependency-composition-pattern skill)
+- Only `app/orchestrator/` and `app/gateway/model_gateway.py` may import from `langchain.*` or `langgraph.*`
 - Write for human readability: each file should have one clear responsibility; split a file when it becomes hard to follow at a glance, not based on a fixed line count
 - When a task description references a plan module structure diagram, create every named file in that diagram as an empty stub — not just the directories. Missing stubs are a blocking finding in code review.
 
@@ -124,9 +118,10 @@ Write tests alongside the implementation — do not defer them. For each task:
 - In RTL tests, never write `expect(screen.getBy*(...)).toBeDefined()` — all `getBy*` queries (`getByRole`, `getByText`, `getByLabelText`, etc.) already throw if the element is absent, so `.toBeDefined()` is unconditionally true regardless of what the code does. This applies whether you are checking content or presence: for content, assert `.textContent`, `.value`, or a specific attribute (e.g. `expect(screen.getByRole('status').textContent).toBe('Changes saved successfully.')`); for presence, use `queryBy*` + `.not.toBeNull()` — `queryBy*` returns `null` on absence so the assertion is falsifiable
 - Never assert type-checking expressions as a substitute for behaviour: `expect(typeof x).toBe('function')`, `expect(x instanceof Y).toBe(true)`, and `expect(x).toBeTruthy()` are unconditionally true regardless of what the code under test does. Call `x()` and assert the result, or assert a side-effect it causes.
 - The falsifiable-assertion rules above apply to every test file introduced or modified in a task branch — not only the files named in the task description. If a task adds an ancillary test file (e.g. a Vitest browser test alongside a Playwright suite), that file is subject to the same assertion standards and will be reviewed as part of the task.
-- Unit tests: pure functions, validation logic, data transformations
-- Integration tests (backend): handler functions with real database where the task involves data persistence
-- Component tests (frontend): React Testing Library for components that have user interactions
+- Unit tests (`@pytest.mark.unit`): pure functions, validation logic, data transformations; use fakes from `tests/fakes/` — never mock `BaseChatModel` directly
+- Integration tests (`@pytest.mark.integration`): require a real Postgres database; use Alembic migrations applied via the `test_engine` fixture
+- Frontend component tests: React Testing Library for components with user interactions
+- SSE event emission: assert against `FakeSseManager.published_events` — do not assert HTTP response bodies for streaming endpoints
 
 ## Behaviour rules
 
@@ -174,23 +169,21 @@ If you are asked to set a status you are not permitted to set, output the standa
 
 ## Definition of done
 
-A task is implementation-complete (ready to set `code_complete`) when:
+A task is implementation-complete (ready to set `code_written`) when:
 
 1. All code required by the task description is written
-2. For each interface or abstraction named in the plan, confirm the implementation calls it — not a lower-level equivalent (e.g. if the plan says call `VectorStore.write()`, do not call `db.embeddings.insert()` directly). If you find yourself calling a lower-level method because the abstraction does not yet support the parameter you need (e.g. `trx`), extend the abstraction — do not bypass it. Bypassing an abstraction to work around a missing parameter is a blocking code review finding.
-3. For any numeric parameter with a range specified in the task description (e.g. `maxDepth: 1–10`), do not encode the upper bound in the shared Zod schema in `packages/shared/src/schemas/`. The schema enforces only the structural type (e.g. `z.number().int().min(1)`); the upper bound must be a config field enforced in the service layer. This is the Infrastructure as Configuration principle (ADR-001) applied to operational limits.
-4. All tests required by the acceptance condition are written and passing
-5. The full test suite for the service passes — run all tests, not just the new ones, to confirm no regressions
-6. `pnpm lint` passes with no errors (Biome format and lint across the whole monorepo)
-7. No TypeScript compilation errors (`pnpm typecheck` or equivalent)
-8. Task status updated to `code_written` via `/update-task-status` (the skill verifies items 5–7 before applying)
+2. For each interface or abstraction named in the plan, confirm the implementation calls it — not a lower-level equivalent. If an abstraction does not yet support a required parameter, extend it rather than bypassing it. Bypassing an abstraction is a blocking code review finding.
+3. All tests required by the acceptance condition are written and passing
+4. The full test suite for the service passes — run all tests, not just the new ones, to confirm no regressions
+5. No Python import errors or syntax errors (`python -m pytest --collect-only` exits 0)
+6. Task status updated to `code_written` via `/update-task-status`
 
 The Implementer phase for a task is complete when the task is `code_written` and the developer
 has been informed. The task advances further only through user and Code Reviewer actions.
 
 ## Handoff
 
-After setting a task to `code_complete`, inform the developer:
+After setting a task to `code_written`, inform the developer:
 
 - Which files were changed or created
 - What the Code Reviewer should focus on (e.g. security boundaries, specific acceptance conditions)

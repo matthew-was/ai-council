@@ -17,6 +17,9 @@ venv/
 # Docker
 docker-compose.override.yml
 
+# Backend local config override (contains secrets)
+apps/backend/config.override.json
+
 # Database
 
 # Lab entries - local draft files

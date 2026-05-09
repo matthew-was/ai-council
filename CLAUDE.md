@@ -4,7 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-**Phase: Implementation.** The planning phase is complete. All architecture, API contract, and implementation plan documents are approved. The `apps/` directory does not yet exist — implementation begins at task B-001 (backend scaffolding).
+**Phase: Implementation.** The planning phase is complete. All architecture, API contract, and implementation plan documents are approved.
+
+### Task progress
+
+| Service | Done | Next |
+| --- | --- | --- |
+| Backend | B-001 (1 of 23) | B-002 |
+| Frontend | — | F-001 |
 
 Prior prototype code and documentation is archived in [archive/](archive/).
 
@@ -21,7 +28,7 @@ The definitive product description is [documentation/project/overview.md](docume
 - All documentation lives in `documentation/`. The `archive/` directory is read-only — do not modify it.
 - Lint markdown before committing: `markdownlint .`
 - Markdown rules are configured in [.markdownlint.json](.markdownlint.json): MD013 (line length), MD022, MD032, MD036 are all disabled.
-- Use conventional commit messages (`feat:`, `fix:`, `docs:`, `refactor:`).
+- Commit message format: `[Service] Task [N] — [task title]` (e.g. `Backend Task 1 — Project scaffolding and configuration`). The type (feat/fix/docs/refactor) is encoded in the branch name, not the commit message.
 - **Never auto-commit** — always ask before committing.
 
 ## Documentation Structure
