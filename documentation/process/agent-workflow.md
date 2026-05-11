@@ -34,7 +34,7 @@ Agents have no memory between sessions. Each conversation starts fresh. To re-es
 | Platform Engineer | `documentation/project/architecture.md`, approved task lists |
 | Project Manager | Senior Developer implementation plan |
 | Implementer | Project Manager task list, Senior Developer implementation plan |
-| Code Reviewer | Code under review, original implementation plan, `documentation/decisions/architecture-decisions.md` |
+| Code Reviewer | Code under review, original implementation plan, `documentation/tasks/api-contract.md`, `documentation/decisions/architecture-decisions.md` |
 | Principles Guardian | Last 5 `post-completion-review-[frontend\|backend]-task-[N].md` files, all four principles files |
 
 **Output documents are the handoff mechanism**: Agents communicate across sessions through documents written to disk. If a document exists at the expected location, the next agent picks it up. This is why every agent's definition of done requires output written to a file — not just discussed in chat.
@@ -198,7 +198,7 @@ The agent structure exists to:
 
 **Post-completion review**: Writes observations to `documentation/tasks/post-completion-review-[frontend|backend]-task-[N].md` alongside its review findings.
 
-**Review focus areas**: Acceptance condition, TypeScript strictness, security at boundaries, error handling, data access compliance, test quality, plan compliance.
+**Review focus areas**: Acceptance condition, type safety (Python and TypeScript), security at boundaries, Infrastructure as Configuration compliance, composition root and dependency injection, service layer result types, error handling, data access compliance, test quality, plan compliance, readability.
 
 **Scope constraints**: Does NOT modify code. Does NOT make architectural decisions. Escalates blocking architectural findings to Head of Development.
 
@@ -242,9 +242,11 @@ Note: Docker Compose setup (B-023), GitHub Actions CI (B-024, F-029), and monore
 ### Per-Task Implementation Loop
 
 ```text
-Implementer produces pre-task plan → developer confirms
+PM sets task to plan_pending
   ↓
-Implementer writes code and tests → sets task to code_written
+Implementer writes pre-task plan → sets task to plan_ready
+  ↓ [developer confirms plan]
+Implementer sets coding_started → writes code and tests → sets code_written
   ↓ [developer sets ready_for_review]
 Code Reviewer reviews → sets review_passed or review_failed
   ↓ [developer sets reviewed]
